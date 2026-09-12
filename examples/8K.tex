@@ -1,0 +1,436 @@
+% -*- coding: utf-8 -*-
+% =============================================================================
+% 8K 大开本数学自学案/作业纸标准模板 (基于 workflow.md 规范)
+% 核心理念：纯问题驱动 (Problem-Driven) 自学文稿，单源双输出 (学生版 / 教师版)
+% 编译引擎：XeLaTeX (推荐运行两遍以更新交叉引用与总页码)
+% =============================================================================
+
+\documentclass[12pt]{ctexart}
+
+% -----------------------------------------------------------------------------
+% 1. 纸张与页面几何设定 (大8开横向折页 / 双栏出版级标准)
+% -----------------------------------------------------------------------------
+\usepackage[
+  paperwidth=285mm,   % 大8开标准高度 (横置时为纵向高度)
+  paperheight=420mm,  % 大8开标准宽度 (横置时为横向宽度)
+  landscape,          % 横向排版 (纸宽 420mm, 纸高 285mm)
+  top=1in,
+  bottom=1in,
+  left=1in,
+  right=1in,
+  headheight=25pt     % 容纳页眉高度
+]{geometry}
+
+% -----------------------------------------------------------------------------
+% 2. 基础宏包加载
+% -----------------------------------------------------------------------------
+\usepackage{amsmath,amssymb,amsthm,bm,mathtools}
+\usepackage{fancyhdr}
+\usepackage{multicol}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{comment}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, calc, shapes.geometric}
+\usepackage{exam-zh-choices}  % 选择题选项自动排版宏包
+\usepackage{hyperref}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!75!black,
+  citecolor=blue!75!black,
+  urlcolor=blue!75!black
+}
+
+% -----------------------------------------------------------------------------
+% 3. 版本控制开关 (遵循 workflow.md 第 6 节“单一源文件生成两版”原则)
+% -----------------------------------------------------------------------------
+% 【使用指引】：
+% 1. 包装文件编译（推荐生产方式）：
+%    - 编译 student.tex 生成【学生版】（无答案、保留完整答题书写空间）
+%    - 编译 teacher.tex 生成【教师版】（显示完整参考解答、教学要点与评分提示）
+% 2. 单文件直接编译（快速开发模式）：
+%    - 默认状态（保持下行注释）：直接编译为【学生版】
+%    - 教师模式（取消下行注释）：直接编译为【教师版】
+% -----------------------------------------------------------------------------
+% \def\TeacherVersion{}
+
+% -----------------------------------------------------------------------------
+% 4. 条件编译与双版本环境配置
+% -----------------------------------------------------------------------------
+\newlength{\fillinwidth}
+
+\ifdefined\TeacherVersion
+  % ============================ 教师版环境配置 ============================
+  % 页眉与页脚
+  \pagestyle{fancy}
+  \fancyhf{}
+  \fancyhead[L]{\bfseries\color{blue!80!black}【教师用书·参考解答与教学要点】}
+  \fancyhead[R]{\kaishu 纯问题驱动研学案}
+  \fancyfoot[C]{\thepage\ of \pageref{LastPage}}
+  \renewcommand{\headrulewidth}{0.4pt}
+  \renewcommand{\footrulewidth}{0.4pt}
+
+  % 参考解答环境（显示解答，支持可选参数定制前缀，如 [解] 或 [证明]）
+  \newenvironment{solution}[1][解]{%
+    \par\begingroup\color{blue!85!black}%
+    \begin{proof}[\indent\bfseries\color{blue!85!black}【#1】]%
+  }{%
+    \end{proof}\endgroup\par
+  }
+
+  % 教师专用教学要点、易错点与评分提示环境
+  \newenvironment{teacherNote}[1][教学要点与易错分析]{%
+    \par\vspace{0.6ex}%
+    \begingroup\color{teal!80!black}\small
+    \noindent\textbf{【#1】}\par\vspace{0.2ex}%
+  }{%
+    \endgroup\par\vspace{0.6ex}%
+  }
+
+  % 答题留白：教师版压缩为微小段落间距，消除多余空白
+  \newcommand{\ansspace}[1]{\par\vspace{0.4ex}}
+
+  % 填空宏：教师版在下划线中央显示醒目的加粗蓝色答案（自动适配文本模式与数学公式模式）
+  \newcommand{\fillin}[2][]{%
+    \if\relax\detokenize{#1}\relax
+      \underline{\hspace{#2}}%
+    \else
+      \ifmmode
+        \settowidth{\fillinwidth}{$\bm{#1}$}%
+        \ifdim\fillinwidth>#2
+          \underline{\hspace{0.5em}{\color{blue!85!black}\bm{#1}}\hspace{0.5em}}%
+        \else
+          \underline{\makebox[#2][c]{$\color{blue!85!black}\bm{#1}$}}%
+        \fi
+      \else
+        \settowidth{\fillinwidth}{\bfseries#1}%
+        \ifdim\fillinwidth>#2
+          \underline{\hspace{0.5em}\textbf{\color{blue!85!black}#1}\hspace{0.5em}}%
+        \else
+          \underline{\makebox[#2][c]{\bfseries\color{blue!85!black}#1}}%
+        \fi
+      \fi
+    \fi
+  }
+\else
+  % ============================ 学生版环境配置 ============================
+  % 页眉与页脚
+  \pagestyle{fancy}
+  \fancyhf{}
+  \fancyhead[L]{姓名：\underline{\hspace{2.2cm}}\quad 班级：\underline{\hspace{2cm}}\quad 学号：\underline{\hspace{2.2cm}}}
+  \fancyhead[R]{\kaishu 纯问题驱动自学案}
+  \fancyfoot[C]{\thepage\ of \pageref{LastPage}}
+  \renewcommand{\headrulewidth}{0.4pt}
+  \renewcommand{\footrulewidth}{0.4pt}
+
+  % 使用 comment 宏包彻底排除解答与批注（无副作用、无残留空白）
+  \excludecomment{solution}
+  \excludecomment{teacherNote}
+
+  % 答题留白：学生版产生实际答题所需的垂直书写空间
+  \newcommand{\ansspace}[1]{\vspace{#1}}
+
+  % 填空宏：学生版仅显示下划线空白
+  \newcommand{\fillin}[2][]{\underline{\hspace{#2}}}
+\fi
+
+% -----------------------------------------------------------------------------
+% 5. 辅助通用组件与列表规范
+% -----------------------------------------------------------------------------
+% 微型知识点模块（两版均显示，用于在问题链关键节点引入最小必要定义/术语，控制在2-3行内）
+\newsavebox{\microbox}
+\newenvironment{microknowledge}[1][核心定义与记号]{%
+  \par\vspace{0.8ex}%
+  \def\microtitle{#1}%
+  \begin{lrbox}{\microbox}%
+    \begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}%
+      \textbf{【\microtitle】}\par\vspace{0.3ex}\small
+}{%
+    \end{minipage}%
+  \end{lrbox}%
+  \noindent\fbox{\usebox{\microbox}}\par\vspace{0.8ex}%
+}
+
+% 列表样式统一设定 (一级题号全章连续；二级子题用 (a), (b) ...)
+\setlist[enumerate,1]{label=\textbf{\arabic*.}, leftmargin=*, itemsep=0.8em, topsep=0.4ex}
+\setlist[enumerate,2]{label=(\alph*), leftmargin=*, itemsep=0.4em}
+
+
+% =============================================================================
+% 正文开始
+% =============================================================================
+\begin{document}
+
+% -----------------------------------------------------------------------------
+% 标题区域 (全卷通用标题与副标题)
+% -----------------------------------------------------------------------------
+\begin{center}
+  {\Huge \textbf{第一章\quad 映射与群的初步概念}} \\[1.5ex]
+  {\large\kaishu —— 基于问题链的自学研讨文稿}
+\end{center}
+
+% -----------------------------------------------------------------------------
+% 教学契约规范块 (workflow.md 第 1 节：明确先备知识、目标、约定与工具边界)
+% -----------------------------------------------------------------------------
+\begin{center}
+\fbox{\parbox{0.96\linewidth}{\small
+\textbf{【教学契约与导读约定】}
+\begin{itemize}[leftmargin=*,noitemsep,topsep=2pt]
+  \item \textbf{先备知识}：朴素集合概念（元素、子集、笛卡尔积 $A \times B$）、初等代数运算。
+  \item \textbf{核心目标}：通过有限图示自主发现映射、单射、满射与双射的本质特征，构建逆映射与对称群概念。
+  \item \textbf{记号约定}：$\mathbb{N}$ 表示正整数集 $\{1,2,3,\dots\}$；映射作用记为 $(x)f$ 或 $f(x)$；恒等映射记作 $I$。
+  \item \textbf{研学方法}：严格按照题目编号递进思考，遇到定义前务必先独立完成直观辨认与构造，不可跳跃翻看。
+\end{itemize}
+}}
+\end{center}
+\vspace{1ex}
+
+% 取消列底强制拉伸对齐，确保垂直答题空白精确受控
+\raggedcolumns
+
+% -----------------------------------------------------------------------------
+% 正文分栏排版 (两页四栏 / 大8开双栏标准)
+% -----------------------------------------------------------------------------
+\begin{multicols}{2}
+
+% =============================================================================
+% 小节一：概念引入与直观表象 (进入题 -> 辨认题 -> 构造题 -> 反例题 -> 微型知识点)
+% =============================================================================
+\section*{一、概念引入与直观表象}
+
+先观察以下映射关系示意图（定义域 $N = \{1,2,3\}$，陪域 $L = \{a,b,c\}$）：
+
+\begin{center}
+\begin{tikzpicture}[x=1.2cm, y=0.8cm, >=Stealth, font=\small]
+  % 集合 N
+  \draw[thick, rounded corners=6pt, fill=blue!5] (0,-0.5) rectangle (1,3.5);
+  \node at (0.5,3.8) {定义域 $N$};
+  \node[circle,fill,inner sep=1.5pt,label=left:$1$] (n1) at (0.5,3) {};
+  \node[circle,fill,inner sep=1.5pt,label=left:$2$] (n2) at (0.5,2) {};
+  \node[circle,fill,inner sep=1.5pt,label=left:$3$] (n3) at (0.5,1) {};
+
+  % 集合 L
+  \draw[thick, rounded corners=6pt, fill=green!5] (3,-0.5) rectangle (4,3.5);
+  \node at (3.5,3.8) {陪域 $L$};
+  \node[circle,fill,inner sep=1.5pt,label=right:$a$] (la) at (3.5,3) {};
+  \node[circle,fill,inner sep=1.5pt,label=right:$b$] (lb) at (3.5,2) {};
+  \node[circle,fill,inner sep=1.5pt,label=right:$c$] (lc) at (3.5,1) {};
+
+  % 箭头映射 f
+  \draw[->,thick,blue!80!black] (n1) -- (la);
+  \draw[->,thick,blue!80!black] (n2) -- (la);
+  \draw[->,thick,blue!80!black] (n3) -- (lb);
+  \node at (2,2.3) [above] {$f$};
+\end{tikzpicture}
+\end{center}
+
+\begin{enumerate}[series=probchain]
+
+% -----------------------------------------------------------------------------
+% [题号: 1] 概念ID: map-entry | 题型: 进入题 | 难度: ★☆☆ | 前置依赖: 无
+% 目标动作: 观察映射图示，总结“定义域每个元素恰有一个像”的经验特征
+% 预期产物: 发现左侧每个点都必须且只能射出一条箭线的规律
+% -----------------------------------------------------------------------------
+\item 【进入题】观察上述图示，对于定义域 $N$ 中的每一个元素 $n$，在陪域 $L$ 中对应的情况是：
+每个 $n \in N$ 发出的箭头数量为 \fillin[恰好一条]{25mm}，且射向陪域 $L$ 中 \fillin[唯一确定的]{25mm} 元素。
+\ansspace{2.0cm}
+\begin{solution}
+恰好一条；唯一确定的。
+\end{solution}
+\begin{teacherNote}
+核心引导点：让学生体会“不遗漏”（定义域全覆盖）与“无二义”（确定性），这是映射概念的基石。
+\end{teacherNote}
+
+% -----------------------------------------------------------------------------
+% [题号: 2] 概念ID: map-identify | 题型: 辨认题 | 难度: ★☆☆ | 前置依赖: 题1
+% 目标动作: 根据定义域各元素的对应情况，分类辨认是否构成映射
+% 预期产物: 识别出“多射”与“未定义”均不符合映射要求
+% -----------------------------------------------------------------------------
+\item 【辨认题】设集合 $A = \{1, 2\}, B = \{x, y\}$。判断下列从 $A$ 到 $B$ 的对应关系中，哪一个是映射？\fillin[A]{15mm}
+\begin{choices}(2)
+  \item $R_1 = \{(1, x), (2, x)\}$
+  \item $R_2 = \{(1, x), (1, y), (2, y)\}$
+  \item $R_3 = \{(1, y)\}$
+  \item $R_4 = \emptyset$
+\end{choices}
+\ansspace{1.5cm}
+\begin{solution}
+A
+\end{solution}
+\begin{teacherNote}
+易错点：B 中元素 1 对应两个像；C 中元素 2 缺少对应；D 为空关系。仅 A 满足定义域上每个元素都有唯一定义。
+\end{teacherNote}
+
+% -----------------------------------------------------------------------------
+% [题号: 3] 概念ID: map-construct | 题型: 构造题 | 难度: ★★☆ | 前置依赖: 题1, 题2
+% 目标动作: 动手构造一个从三元集到二元集的非单射映射，并列出其有序对集合
+% 预期产物: 给出如 {(1,x),(2,x),(3,y)} 并验证每个元素恰有唯一像
+% -----------------------------------------------------------------------------
+\item 【构造题】设 $S = \{1, 2, 3\}, T = \{u, v\}$。请写出一个映射 $g: S \to T$，使得 $T$ 中的每个元素都被取到（即满射），并写出其有序对集合表示。
+\ansspace{3.5cm}
+\begin{solution}
+例如令 $g = \{(1, u), (2, u), (3, v)\}$。
+验证：每个原像都有唯一像，且像集为 $\{u, v\} = T$。
+\end{solution}
+\begin{teacherNote}
+让学生体验具体构造。注意只要满足每个定义域元素恰有一个像且值域覆盖 $T$ 即可，答案不唯一。
+\end{teacherNote}
+
+% -----------------------------------------------------------------------------
+% [题号: 4] 概念ID: map-counterexample | 题型: 反例题 | 难度: ★★☆ | 前置依赖: 题1, 题2
+% 目标动作: 寻找使代数规则失效的反例，探索定义域限制与边界
+% 预期产物: 发现 0 没有倒数或实数开平方出现非实数/多值
+% -----------------------------------------------------------------------------
+\item 【反例题】说明规则 $x \mapsto \frac{1}{x^2 - 4}$ 为何不能直接定义一个实数集上的映射 $\mathbb{R} \to \mathbb{R}$？若要使其成为合法映射，应如何调整定义域？
+\ansspace{3.5cm}
+\begin{solution}
+当 $x = \pm 2$ 时，分母为零无意义，因此定义域中的 $2$ 和 $-2$ 没有对应的实数像。
+调整方案：将定义域限制为 $\mathbb{R} \setminus \{-2, 2\}$。
+\end{solution}
+\begin{teacherNote}
+引导学生明确：谈论映射必须完整说明“定义域”与“对应法则”，分母为零是初学者最常见反例之一。
+\end{teacherNote}
+
+\end{enumerate}
+
+% -----------------------------------------------------------------------------
+% 微型知识点插入 (workflow.md 第 4 节：仅在学生完成前置探究后提供精准定义)
+% -----------------------------------------------------------------------------
+\begin{microknowledge}[微型知识点：映射与单射、满射]
+设 $A, B$ 是集合。如果对 $A$ 中每个元素 $a$，按某法则都存在 $B$ 中\textbf{唯一}确定的元素 $b$ 与之对应，则称此对应为从 $A$ 到 $B$ 的\textbf{映射}，记作 $f: A \to B$。
+\begin{itemize}[leftmargin=*,noitemsep,topsep=1pt]
+  \item \textbf{单射}：若 $a_1 \neq a_2 \implies f(a_1) \neq f(a_2)$（不同元素映到不同像）。
+  \item \textbf{满射}：对任意 $b \in B$，均存在 $a \in A$ 使得 $f(a) = b$（像集填满陪域）。
+  \item \textbf{双射}：既是单射又是满射（一一对应）。
+\end{itemize}
+\end{microknowledge}
+
+% =============================================================================
+% 小节二：形式化与性质迁移 (形式化题 -> 迁移题)
+% =============================================================================
+\section*{二、精确形式化与概念迁移}
+
+\begin{enumerate}[resume=probchain]
+
+% -----------------------------------------------------------------------------
+% [题号: 5] 概念ID: map-formalize | 题型: 形式化题 | 难度: ★★☆ | 前置依赖: 微型知识点
+% 目标动作: 将自然语言命题转化为带量词的精确数学符号表达
+% 预期产物: 写出逆否命题形式与存在量词表达
+% -----------------------------------------------------------------------------
+\item 【形式化题】请用全称量词 $\forall$、存在量词 $\exists$ 及逻辑连词写出“映射 $f: A \to B$ 是单射”的形式化逆否定义：
+\[
+  \forall a_1, a_2 \in A,\quad \fillin[f(a_1) = f(a_2) \implies a_1 = a_2]{60mm}.
+\]
+\ansspace{2.5cm}
+\begin{solution}
+$f(a_1) = f(a_2) \implies a_1 = a_2$
+\end{solution}
+\begin{teacherNote}
+强调在代数证明中，证明单射最常使用的操作标准是“假设像相等，推导原像必相等”。
+\end{teacherNote}
+
+% -----------------------------------------------------------------------------
+% [题号: 6] 概念ID: map-transfer | 题型: 迁移题 | 难度: ★★☆ | 前置依赖: 题5
+% 目标动作: 将单射/满射概念迁移至数集与多项式函数，分类辨识
+% 预期产物: 判断并证明 Z -> Z: x |-> 2x 为单射但非满射
+% -----------------------------------------------------------------------------
+\item 【迁移题】考虑映射 $h: \mathbb{Z} \to \mathbb{Z}, x \mapsto 2x$。关于 $h$ 的单射性与满射性，下列结论正确的是：\fillin[B]{15mm}
+\begin{choices}(1)
+  \item $h$ 既是单射又是满射
+  \item $h$ 是单射但不是满射
+  \item $h$ 不是单射但为满射
+  \item $h$ 既非单射亦非满射
+\end{choices}
+\ansspace{3.0cm}
+\begin{solution}
+B
+\end{solution}
+\begin{teacherNote}
+关键迁移点：在有限集上，自身到自身的单射必为满射；但在无限集（如整数集 $\mathbb{Z}$）上，单射不一定是满射（奇数均无原像）。
+\end{teacherNote}
+
+\end{enumerate}
+
+% =============================================================================
+% 小节三：结构综合与定理证明 (证明/综合题)
+% =============================================================================
+\section*{三、复合运算与结构证明}
+
+\begin{enumerate}[resume=probchain]
+
+% -----------------------------------------------------------------------------
+% [题号: 7] 概念ID: map-synthesis | 题型: 证明/综合题 | 难度: ★★★ | 前置依赖: 题5, 题6
+% 目标动作: 综合单射定义，给出复合映射单射性的严密证明
+% 预期产物: 完整的三段论数学推导
+% -----------------------------------------------------------------------------
+\item 【证明/综合题】设 $f: A \to B$ 和 $g: B \to C$ 为两个映射。复合映射 $g \circ f: A \to C$ 定义为 $(g \circ f)(x) = g(f(x))$。
+证明：若 $f$ 和 $g$ 均为单射，则 $g \circ f$ 也是单射。
+\ansspace{5.5cm}
+\begin{solution}[证明]
+任取 $x_1, x_2 \in A$，假设 $(g \circ f)(x_1) = (g \circ f)(x_2)$。
+根据复合映射定义，有
+\[
+  g(f(x_1)) = g(f(x_2)).
+\]
+因为 $g: B \to C$ 是单射，由题 5 的单射判据可得：
+\[
+  f(x_1) = f(x_2).
+\]
+又因为 $f: A \to B$ 也是单射，再次应用单射判据得：
+\[
+  x_1 = x_2.
+\]
+由单射定义可知，$g \circ f: A \to C$ 必为单射。
+\end{solution}
+\begin{teacherNote}
+评分要点与关注点：
+1. 是否从假设 $(g \circ f)(x_1) = (g \circ f)(x_2)$ 出发；
+2. 是否清晰且有序地依次调用了 $g$ 与 $f$ 的单射性；
+3. 结论是否明确指出推得 $x_1 = x_2$。
+\end{teacherNote}
+
+\end{enumerate}
+
+% =============================================================================
+% 小节四：章节回看与承上启下 (回看题)
+% =============================================================================
+\section*{四、章节回看与反思}
+
+\begin{enumerate}[resume=probchain]
+
+% -----------------------------------------------------------------------------
+% [题号: 8] 概念ID: map-review | 题型: 回看题 | 难度: ★★☆ | 前置依赖: 全章题目
+% 目标动作: 一句话提炼核心判据，并总结复合运算对代数结构（群）的铺垫作用
+% 预期产物: 阐述双射的可逆性与群结构的萌芽
+% -----------------------------------------------------------------------------
+\item 【回看题】回顾本节构建的全部概念：
+\begin{enumerate}
+  \item 用一句话概括：要使映射存在双侧反函数（逆映射），该映射必须满足什么本质充要条件？
+  \item 若集合 $A$ 到自身的双射构成集合 $\mathfrak{S}_A$，且双射在复合运算下封闭并满足结合律，这为我们下一节定义什么代数结构奠定了基础？
+\end{enumerate}
+\ansspace{4.0cm}
+\begin{solution}
+\begin{enumerate}
+  \item 该映射必须是双射（既单又满的一一对应）。
+  \item 为定义“对称群”或“群”（Group）结构奠定了基础。
+\end{enumerate}
+\end{solution}
+\begin{teacherNote}
+承上启下：此题引导学生跳出单道题目的细节，看到全章的脉络——从具体对应关系走向对称群与抽象群。
+\end{teacherNote}
+
+\end{enumerate}
+
+\end{multicols}
+
+% -----------------------------------------------------------------------------
+% 页面统计标签 (用于页脚 "X of Y" 动态引用)
+% -----------------------------------------------------------------------------
+\label{LastPage}
+
+\end{document}
+% =============================================================================
+% 模板文件结束
+% =============================================================================

@@ -1,0 +1,29 @@
+# =============================================================================
+# 纯问题驱动自学案 —— 全局参数配置
+# 修改本文件后，运行:  python ../scripts/gen_config.py
+# 将重新生成 config-class.tex 与 config.tex（二者均为自动生成，请勿手改）。
+# 不同课程/学期只需复制本文件改参数，无需触碰 LaTeX 模板。
+# 注意：值为单行文本；若含冒号请用全角“：”或用双引号包裹整个值。
+# =============================================================================
+
+# --- 文档类 ---
+font_size: 12pt            # ctexart 字号选项 (10pt / 11pt / 12pt)
+
+# --- 纸张与版面几何 (geometry 宏包参数) ---
+paperwidth: 285mm          # 大8开标准高度（横向放置时为纵向高度）
+paperheight: 420mm         # 大8开标准宽度（横向放置时为横向宽度）
+orientation: landscape     # landscape / portrait
+margin_top: 1in
+margin_bottom: 1in
+margin_left: 1in
+margin_right: 1in
+headheight: 25pt
+
+# --- 双栏 ---
+columns: 2                 # multicols 栏数
+
+# --- 标题区 ---
+main_title: 章节主标题（例如：群论）
+
+# --- 页眉页脚文案 ---
+teacher_head_left: 【教师用书·参考解答与教学要点】

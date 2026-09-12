@@ -1,0 +1,233 @@
+% -*- coding: utf-8 -*-
+% =============================================================================
+% header.tex —— 自学案：导言区 + 宏定义 + 标题区 + 双栏开始
+% 架构: student.tex/teacher.tex -> main.tex -> [header.tex, sec*.tex, footer.tex]
+% 参数: 全部版面与文案参数来自 config-class.tex / config.tex
+%       （由 scripts/gen_config.py 依据 config.yaml 自动生成，勿手改）。
+% =============================================================================
+
+% ---- 文档类选项（字号等，须在 \documentclass 之前注入） ----
+\input{config-class.tex}
+\documentclass{ctexart}
+
+% ---- 版面几何与文本参数（config.yaml 自动生成） ----
+\input{config.tex}
+
+% -----------------------------------------------------------------------------
+% 核心宏包加载
+% -----------------------------------------------------------------------------
+\usepackage{amsmath,amssymb,amsthm,bm,mathtools}
+\usepackage{fancyhdr}
+\usepackage{multicol}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{comment}
+\usepackage[framemethod=TikZ]{mdframed}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, calc, shapes.geometric}
+\usepackage{exam-zh-choices}  % 选择题选项自动排版宏包
+\usepackage{hyperref}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!75!black,
+  citecolor=blue!75!black,
+  urlcolor=blue!75!black
+}
+
+% -----------------------------------------------------------------------------
+% 统计计数器（编译后输出环境使用摘要，便于验收与排错）
+% -----------------------------------------------------------------------------
+\newcounter{pdSolutionCount}
+\newcounter{pdNoteCount}
+\newcounter{pdFillinCount}
+\newlength{\fillinwidth}
+
+% -----------------------------------------------------------------------------
+% 双版本环境控制宏 (Single-source Dual-output)
+% 说明: solution/teacherNote/fillin/ansspace 在两版中的行为在此处统一定义，
+%       切片文件 (sec*.tex) 只需使用同一套命令，无需关心版本差异。
+% -----------------------------------------------------------------------------
+\ifdefined\TeacherVersion
+  % ============================ 教师版环境配置 ============================
+  \pagestyle{fancy}
+  \fancyhf{}
+  \fancyhead[L]{\bfseries\color{blue!80!black}\pdTeacherHeadLeft}
+  \fancyfoot[C]{\thepage\ of \pageref{LastPage}}
+  \renewcommand{\headrulewidth}{0.4pt}
+  \renewcommand{\footrulewidth}{0.4pt}
+
+  % 题型标签：教师版显示【xx题】字样，便于把握设计意图
+  \newcommand{\qtype}[1]{【#1】}
+
+  % 题目状态标签 \practicemode{guided|unprompted}（可选，缺省 guided）：
+  % unprompted 为无提示纯习题，教师版显示【无提示练习】标签，学生版隐藏。
+  % 用 \providecommand 兼容，取值非法时发出编译警告。
+  \providecommand{\practicemode}[1]{%
+    \def\pdPmode{#1}%
+    \def\pdPmodeU{unprompted}%
+    \def\pdPmodeG{guided}%
+    \ifx\pdPmode\pdPmodeU
+      {\bfseries\color{teal!80!black}【无提示练习】}%
+    \else
+      \ifx\pdPmode\pdPmodeG\else
+        \PackageWarning{problem-driven}{\protect\practicemode\space 取值只能是 guided 或 unprompted（收到“#1”）}%
+      \fi
+    \fi}
+
+  % 参考解答环境（显示完整答案推导，并计数）
+  \newenvironment{solution}[1][解]{%
+    \stepcounter{pdSolutionCount}%
+    \par\begingroup\color{blue!85!black}%
+    \begin{proof}[\indent\bfseries\color{blue!85!black}【#1】]%
+  }{%
+    \end{proof}\endgroup\par
+  }
+
+  % 教师专用教学要点、易错警示与评分提示环境
+  \newenvironment{teacherNote}[1][教学要点与易错分析]{%
+    \stepcounter{pdNoteCount}%
+    \par\vspace{0.6ex}%
+    \begingroup\color{teal!80!black}\small
+    \noindent\textbf{【#1】}\par\vspace{0.2ex}%
+  }{%
+    \endgroup\par\vspace{0.6ex}%
+  }
+
+  % 答题留白：教师版压缩为微小行距，消除多余空白
+  \newcommand{\ansspace}[1]{\par\vspace{0.4ex}}
+
+  % 填空宏：教师版在下划线居中呈现醒目的加粗蓝色答案；
+  % 缺宽度或缺答案时发出编译警告
+  \newcommand{\fillin}[2][]{%
+    \stepcounter{pdFillinCount}%
+    \if\relax\detokenize{#2}\relax
+      \PackageWarning{problem-driven}{\protect\fillin\space 缺少预留宽度参数（第 \thepdFillinCount\space 处）}%
+    \fi
+    \if\relax\detokenize{#1}\relax
+      \PackageWarning{problem-driven}{\protect\fillin\space 未提供参考答案（第 \thepdFillinCount\space 处）}%
+      \underline{\hspace{#2}}%
+    \else
+      \ifmmode
+        \settowidth{\fillinwidth}{$\bm{#1}$}%
+        \ifdim\fillinwidth>#2
+          \underline{\hspace{0.5em}{\color{blue!85!black}\bm{#1}}\hspace{0.5em}}%
+        \else
+          \underline{\makebox[#2][c]{$\color{blue!85!black}\bm{#1}$}}%
+        \fi
+      \else
+        \settowidth{\fillinwidth}{\bfseries#1}%
+        \ifdim\fillinwidth>#2
+          \underline{\hspace{0.5em}\textbf{\color{blue!85!black}#1}\hspace{0.5em}}%
+        \else
+          \underline{\makebox[#2][c]{\bfseries\color{blue!85!black}#1}}%
+        \fi
+      \fi
+    \fi
+  }
+\else
+  % ============================ 学生版环境配置 ============================
+  \pagestyle{fancy}
+  \fancyhf{}
+  \fancyhead[L]{姓名：\underline{\hspace{2.2cm}}\quad 班级：\underline{\hspace{2cm}}}
+  \fancyfoot[C]{\thepage\ of \pageref{LastPage}}
+  \renewcommand{\headrulewidth}{0.4pt}
+  \renewcommand{\footrulewidth}{0.4pt}
+
+  % 题型标签：学生版隐藏【xx题】字样（设计流程保留题型，但不明示）
+  \newcommand{\qtype}[1]{}
+
+  % 题目状态标签：学生版隐藏（unprompted 题的引导隐藏由切片写作纪律保证，
+  % 并由 scripts/check_numbering.py 检查题块内不得含提示标记）
+  \providecommand{\practicemode}[1]{}%
+
+  % 彻底剥离答案与教师批注，同时计数以便编译日志中核对剥离数量
+  % 注意: \specialcomment 默认会“包含”环境体；在组内将 \ProcessCutFile 重定义为
+  % 空即恢复剥离效果（comment 宏包官方推荐用法），begin 行尾内容会被自动丢弃。
+  \specialcomment{solution}{\stepcounter{pdSolutionCount}\begingroup\def\ProcessCutFile{}}{\endgroup}
+  \specialcomment{teacherNote}{\stepcounter{pdNoteCount}\begingroup\def\ProcessCutFile{}}{\endgroup}
+
+  % 答题留白：学生版产生实际书写所需的物理垂直空间
+  \newcommand{\ansspace}[1]{\vspace{#1}}
+
+  % 填空宏：学生版仅呈现预留长度的下划线空白
+  \newcommand{\fillin}[2][]{%
+    \stepcounter{pdFillinCount}%
+    \if\relax\detokenize{#2}\relax
+      \PackageWarning{problem-driven}{\protect\fillin\space 缺少预留宽度参数（第 \thepdFillinCount\space 处）}%
+    \fi
+    \underline{\hspace{#2}}%
+  }
+\fi
+
+% 编译结束时的质量摘要（写入 .log 与终端，供 build.py 解析核对）
+\AtEndDocument{%
+  \typeout{[problem-driven] SUMMARY solution=\arabic{pdSolutionCount},
+    teacherNote=\arabic{pdNoteCount}, fillin=\arabic{pdFillinCount}}%
+  \ifdefined\TeacherVersion
+    \ifnum\value{pdSolutionCount}=0
+      \PackageWarning{problem-driven}{教师版未发现任何 solution 环境，请检查切片文件}%
+    \fi
+  \else
+    \typeout{[problem-driven] 学生版已剥离 solution/teacherNote，数量为上述 SUMMARY}%
+  \fi
+}
+
+% -----------------------------------------------------------------------------
+% 微型知识点模块与列表规范
+% -----------------------------------------------------------------------------
+\newsavebox{\microbox}
+\newenvironment{microknowledge}[1][核心定义与记号]{%
+  \par\vspace{0.8ex}%
+  \def\microtitle{#1}%
+  \begin{lrbox}{\microbox}%
+    \begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}%
+      \textbf{【\microtitle】}\par\vspace{0.3ex}\small
+}{%
+    \end{minipage}%
+  \end{lrbox}%
+  \noindent\fbox{\usebox{\microbox}}\par\vspace{0.8ex}%
+}
+
+% -----------------------------------------------------------------------------
+% 章节末结论框（虚线框）：只放本节由问题链自主探究推出的结论
+% -----------------------------------------------------------------------------
+\mdfdefinestyle{pdKnowledgeBoxStyle}{%
+  linecolor=gray,
+  linewidth=0.8pt,
+  backgroundcolor=gray!4,
+  tikzsetting={draw=gray, dash pattern=on 3pt off 2pt},
+  roundcorner=0pt,
+  innertopmargin=6pt,
+  innerbottommargin=6pt,
+  innerleftmargin=8pt,
+  innerrightmargin=8pt,
+  nobreak=true
+}
+\newenvironment{knowledgebox}[1][本节结论]{%
+  \par\vspace{0.8ex}%
+  \begin{mdframed}[style=pdKnowledgeBoxStyle]%
+  \textbf{#1}\par\vspace{0.3ex}\small
+}{%
+  \end{mdframed}\par\vspace{0.8ex}%
+}
+
+
+% 列表样式统一设定 (一级题号连续递增；二级子题用 (a), (b)...)
+\setlist[enumerate,1]{label=\textbf{\arabic*.}, leftmargin=*, itemsep=0.8em, topsep=0.4ex}
+\setlist[enumerate,2]{label=(\alph*), leftmargin=*, itemsep=0.4em}
+
+% -----------------------------------------------------------------------------
+% 题链自动编号环境 probchain（推荐）
+% 自建计数器跨环境续号，彻底摆脱手工维护 series=/resume= 的对位负担：
+% 所有小节统一写作 \begin{probchain}...\end{probchain}，先后顺序天然决定题号。
+% 旧写法 \begin{enumerate}[series=probchain] / [resume=probchain] 仍然兼容。
+% -----------------------------------------------------------------------------
+\newcounter{pdprob}
+\newenvironment{probchain}{%
+  \begin{enumerate}[start=\the\numexpr\value{pdprob}+1\relax]%
+}{%
+    \setcounter{pdprob}{\value{enumi}}%
+  \end{enumerate}%
+}
