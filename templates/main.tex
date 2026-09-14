@@ -2,9 +2,10 @@
 % =============================================================================
 % 自学案/大8开作业纸 —— 主骨架
 % 架构说明：
-%   header.tex  导言区、宏定义、标题区、双栏开始
+%   header.tex  导言区、宏定义、标题区、栏环境宏（\pdBeginColumns/\pdEndColumns，
+%               栏数为 1 时不进入 multicols）
 %   sec*.tex    各小节纯切片内容（由子 Agent 并发生成）
-%   footer.tex  双栏结束、LastPage 锚点、\end{document}
+%   footer.tex  栏环境结束、LastPage 锚点、\end{document}
 % 参数化：版面与文案参数均由 config.yaml 生成，见 scripts/gen_config.py。
 % 编译方式：请通过 student.tex 或 teacher.tex 包装文件执行编译，
 %           或直接使用 scripts/build.py 一键双版编译+检查。
@@ -17,7 +18,7 @@
   {\Huge \textbf{\pdMainTitle}}
 \end{center}
 \raggedcolumns
-\begin{multicols}{\pdColumns}
+\pdBeginColumns
 
 % 引入各小节纯切片文件 (推荐使用 \begin{probchain} 自动连续编号环境)
 \input{sec1.tex}

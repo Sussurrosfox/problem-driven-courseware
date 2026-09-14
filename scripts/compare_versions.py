@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+TOOL_VERSION = "2.0"
 r"""
 compare_versions.py — 学生版/教师版 PDF 对比检查
 
@@ -14,6 +15,9 @@ compare_versions.py — 学生版/教师版 PDF 对比检查
      可疑），命中时给出页码与上下文。注意答案表达式可能本就出现在题干中，
      属启发式检查，默认不判失败；--strict-answers 下判失败。
      --answer-min-len 控制参与检查的最短答案长度，--no-answer-check 关闭。
+     最终报告区分三种结果：硬失败（禁用标记泄露/计数不一致，退出码 1）；
+     结构通过但有疑似答案项（退出码 0，明确提示待人工复核，不得表述为
+     “无泄露”）；完全通过。本脚本不负责判断教学上的答案揭示顺序。
   3. 源级计数联合检查（硬失败）：统计源文件 \begin{solution} /
      \begin{teacherNote} 数量，与 student.log / teacher.log 中
      [problem-driven] SUMMARY 计数交叉核对，不一致说明剥离计数异常。
@@ -21,9 +25,12 @@ compare_versions.py — 学生版/教师版 PDF 对比检查
      更大，仅打印供参考，不作为正确性判据。
 
 pdftotext 抽取失败会立即报错退出（退出码 2），绝不按空文本继续比较。
+缺少日志 SUMMARY 等证据时默认返回 2（无法完成检查），不得以“证据缺失”
+冒充“检查通过”；--diagnostic 仅作独立诊断用途，会显式列出被跳过的检查。
 依赖: poppler 的 pdftotext（PATH 中可用）。
 用法: python compare_versions.py [工作目录] [选项]
-退出码: 0=通过, 1=发现问题, 2=缺少依赖、输入文件或文本抽取失败。
+退出码: 0=通过（含“结构通过但有疑似答案项待复核”情形，报告会明确区分），
+       1=发现硬失败问题, 2=缺少依赖、输入文件、文本抽取失败或证据缺失。
 """
 import argparse
 import os
@@ -130,25 +137,45 @@ def sec_sources(workdir):
 
 
 def extract_fillin_answers(text):
-    """提取 \\fillin[答案]{宽度} 中的答案（支持嵌套花括号）。"""
+    """提取 \\fillin[答案]{宽度} 中的答案（小型词法扫描）。
+
+    规则：`\\fillin` 后紧跟 `[` 才扫描可选参数；可选参数内 `{}` 分组配对，
+    仅在分组深度 0 处的 `]` 终止；`\\` 与其后一个字符视为转义，不作结构
+    字符。不带 `[` 的用法不产生候选；括号未闭合等无法解析的写法被跳过，
+    不生成错误候选。
+    """
     answers = []
-    for m in re.finditer(r"\\fillin\[", text):
-        i = m.end()
-        depth, buf = 1, []
-        while i < len(text) and depth > 0:
-            c = text[i]
-            if c == "{":
-                depth += 1
-            elif c == "]":
-                depth -= 1
-                if depth == 0:
-                    break
-            elif c == "}":
-                depth += 1
-            if depth > 0:
-                buf.append(c)
+    i = 0
+    while True:
+        j = text.find("\\fillin", i)
+        if j < 0:
+            break
+        i = j + len("\\fillin")
+        while i < len(text) and text[i] in " \t\n":
             i += 1
-        answers.append("".join(buf))
+        if i >= len(text) or text[i] != "[":
+            continue
+        i += 1
+        buf, brace, closed = [], 0, False
+        while i < len(text):
+            c = text[i]
+            if c == "\\" and i + 1 < len(text):
+                buf.append(c)
+                buf.append(text[i + 1])
+                i += 2
+                continue
+            if c == "{":
+                brace += 1
+            elif c == "}" and brace > 0:
+                brace -= 1
+            elif c == "]" and brace == 0:
+                closed = True
+                i += 1
+                break
+            buf.append(c)
+            i += 1
+        if closed:
+            answers.append("".join(buf))
     return answers
 
 
@@ -182,28 +209,53 @@ def main():
                     help="关闭 \\fillin 答案泄露检查")
     ap.add_argument("--strict-answers", action="store_true",
                     help="疑似答案泄露也判为失败")
+    ap.add_argument("--diagnostic", action="store_true",
+                    help="诊断模式：证据缺失时跳过对应检查并显式列出，"
+                         "不得用于交付结论")
+    ap.add_argument("--json", metavar="PATH", help="写入结构化检查结果")
     args = ap.parse_args()
     workdir = os.path.abspath(args.workdir)
 
-    if not shutil.which("pdftotext"):
-        print("[compare] 未找到 pdftotext（poppler），无法对比。")
+    report = {"tool": "compare_versions.py", "tool_version": TOOL_VERSION,
+              "scope": {"workdir": workdir, "diagnostic": args.diagnostic},
+              "status": "pass", "issues": [], "evidence": {}}
+
+    def fail_env(msg):
+        print(msg)
+        report["status"] = "error"
+        report["issues"].append({"severity": "error", "message": msg})
+        if args.json:
+            import json
+            with open(args.json, "w", encoding="utf-8") as f:
+                json.dump(report, f, ensure_ascii=False, indent=2)
         return 2
+
+    if not shutil.which("pdftotext"):
+        return fail_env("[compare] 未找到 pdftotext（poppler），无法对比。")
     stu = os.path.join(workdir, "student.pdf")
     tea = os.path.join(workdir, "teacher.pdf")
     if not (os.path.exists(stu) and os.path.exists(tea)):
-        print("[compare] 缺少 student.pdf 或 teacher.pdf，请先运行 build.py。")
-        return 2
+        return fail_env("[compare] 缺少 student.pdf 或 teacher.pdf，"
+                        "请先运行 build.py。")
 
     # 文本抽取失败必须报错，禁止按空文本继续比较
     stu_pages = pdf_pages_text(stu)
     tea_pages = pdf_pages_text(tea)
     if stu_pages is None or tea_pages is None:
         bad = "student.pdf" if stu_pages is None else "teacher.pdf"
-        print("[compare] pdftotext 抽取 %s 失败，无法执行泄露检查。" % bad)
-        return 2
+        return fail_env("[compare] pdftotext 抽取 %s 失败，"
+                        "无法执行泄露检查。" % bad)
 
     problems = []
     suspicions = []  # 疑似答案泄露：启发式命中，供人工复核
+
+    # 新鲜度提示：PDF 早于切片源文件时，检查证据可能对应旧构建
+    newest_src = max((os.path.getmtime(os.path.join(workdir, n))
+                      for n in sec_sources(workdir)), default=None)
+    if newest_src is not None and min(os.path.getmtime(stu),
+                                      os.path.getmtime(tea)) < newest_src:
+        print("[compare] [警告] PDF 构建时间早于部分切片源文件，检查结果"
+              "可能不对应当前源；交付结论须以同一次构建的产物为准。")
 
     # ---- 1. 标记泄露扫描（默认模式 + 自定义标题 + 用户追加）----
     forbid = [w for w in DEFAULT_FORBID_CN + args.forbid
@@ -256,15 +308,28 @@ def main():
                     for t in src_texts.values())
     n_note_src = sum(len(re.findall(r"\\begin\{teacherNote\}", t))
                      for t in src_texts.values())
+    missing_evidence = []
     for target in ("student", "teacher"):
         sm = load_summary(workdir, target)
         if sm is None:
+            missing_evidence.append(
+                "%s.log 缺失或不含 [problem-driven] SUMMARY 行" % target)
             continue
         if (n_sol_src, n_note_src) != sm:
             problems.append(
                 "%s.log SUMMARY (solution=%d, teacherNote=%d) 与源文件计数 "
                 "(solution=%d, teacherNote=%d) 不一致，剥离/统计异常"
                 % (target, sm[0], sm[1], n_sol_src, n_note_src))
+    if missing_evidence:
+        for msg in missing_evidence:
+            print("[compare] [证据缺失] %s" % msg)
+        if not args.diagnostic:
+            return fail_env(
+                "[compare] 计数核对所需证据缺失（%s），无法完成检查；"
+                "证据缺失不得按通过处理。若仅作诊断，请加 --diagnostic。"
+                % "；".join(missing_evidence))
+        print("[compare] --diagnostic 模式：已跳过源级计数与日志核对。")
+        report["evidence"]["skipped"] = missing_evidence
     print("[compare] 源文件计数：solution=%d, teacherNote=%d"
           % (n_sol_src, n_note_src))
 
@@ -293,9 +358,29 @@ def main():
             print("  - " + p)
         if len(problems) > 30:
             print("  … 其余 %d 条省略" % (len(problems) - 30))
-        return 1
-    print("[compare] 通过：无泄露、源级计数一致。")
-    return 0
+        report["status"] = "fail"
+    elif suspicions:
+        print("[compare] 已完成的检查范围内未发现泄露标记、源级计数一致；"
+              "但有 %d 条答案疑似项待人工复核。" % len(suspicions))
+        print("[compare] 注意：本脚本只做启发式文本匹配，不能判断教学上的"
+              "答案揭示顺序是否正确；疑似项复核与揭示顺序验收属于"
+              "独立教学验收职责（prompts/acceptance_prompt.md）。")
+        report["status"] = "review"
+    else:
+        print("[compare] 通过：已完成的检查范围内未发现泄露标记、"
+              "源级计数一致、无疑似答案项。")
+    report["issues"] = (
+        [{"severity": "error", "message": p} for p in problems]
+        + [{"severity": "review", "message": s} for s in suspicions])
+    report["evidence"].update({
+        "src_counts": {"solution": n_sol_src, "teacherNote": n_note_src},
+        "suspect_count": len(suspicions)})
+    if args.json:
+        import json
+        with open(args.json, "w", encoding="utf-8") as f:
+            json.dump(report, f, ensure_ascii=False, indent=2)
+        print("[compare] 结构化报告已写入 %s" % args.json)
+    return 1 if problems else 0
 
 
 if __name__ == "__main__":

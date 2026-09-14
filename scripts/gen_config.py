@@ -1,54 +1,147 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+TOOL_VERSION = "2.0"
 r"""
-gen_config.py — 由 templates/config.yaml 生成 LaTeX 参数文件
-  输出: templates/config-class.tex  (\PassOptionsToClass，须在 \documentclass 前 \input)
-        templates/config.tex        (geometry 版面与全部文本参数宏)
-用法: python gen_config.py [templates目录]      默认取本脚本同级 ../templates
-依赖: 无第三方依赖（优先使用 PyYAML，缺失时退回内置单行解析器）。
+gen_config.py — 由项目目录的 config.yaml 生成 LaTeX 参数文件
+  输出: <project>/config-class.tex  (\PassOptionsToClass，须在 \documentclass 前 \input)
+        <project>/config.tex        (geometry 版面与全部文本参数宏)
+用法: python gen_config.py --project <项目目录>
+依赖: 无第三方依赖（优先使用 PyYAML，缺失时退回内置解析器；
+      两条路径在本配置使用的扁平子集上结果一致，见 parse_flat_yaml）。
+
+配置语义（扁平 key: value，单行值）：
+  - 值可用双引号或单引号包裹；引号内的 # 不视为注释；
+  - 未加引号的值在第一个 " #" 处截断注释；加引号的值不支持行内注释；
+  - 未知键、非法枚举、缺单位尺寸均报错（绝不静默忽略）。
 """
+import argparse
 import os
+import re
 import sys
 
+for stream in (sys.stdout, sys.stderr):
+    if hasattr(stream, "reconfigure"):
+        stream.reconfigure(encoding="utf-8", errors="replace")
+
+# 已知字段：kind 决定校验与转义方式
+FIELDS = {
+    "font_size": ("enum", ("10pt", "11pt", "12pt")),
+    "paperwidth": ("dim", None),
+    "paperheight": ("dim", None),
+    "orientation": ("enum", ("landscape", "portrait")),
+    "margin_top": ("dim", None),
+    "margin_bottom": ("dim", None),
+    "margin_left": ("dim", None),
+    "margin_right": ("dim", None),
+    "headheight": ("dim", None),
+    "columns": ("int", None),
+    "main_title": ("text", None),
+    "teacher_head_left": ("text", None),
+}
+DIM_RE = re.compile(r"^\d+(\.\d+)?(mm|cm|in|pt|em|ex|bp|pc)$")
+
+
+def parse_flat_yaml(text):
+    """解析本配置使用的扁平 YAML 子集，两条解析路径共用同一语义。
+
+    与 PyYAML 在该子集上保持一致：单/双引号包裹的值原样取引号内内容
+    （引号内 # 不是注释）；未包裹的值在 " #" 处截断注释并去首尾空白。
+    """
+    data = {}
+    for lineno, line in enumerate(text.splitlines(), 1):
+        s = line.strip()
+        if not s or s.startswith("#") or ":" not in s:
+            continue
+        key, _, val = s.partition(":")
+        key, val = key.strip(), val.strip()
+        if val[:1] in ('"', "'"):
+            q = val[0]
+            end = val.find(q, 1)
+            if end < 0:
+                raise ValueError("config.yaml:%d: 引号未闭合: %s"
+                                 % (lineno, line.strip()))
+            val = val[1:end]
+        else:
+            val = val.split(" #", 1)[0].strip()
+        data[key] = val
+    return data
+
+
 def load_config(path):
-    """读取扁平的 key: value 配置。优先 PyYAML，缺失时用简易解析器。"""
+    """读取扁平的 key: value 配置。优先 PyYAML，缺失时用内置解析器。"""
+    with open(path, encoding="utf-8") as f:
+        text = f.read()
     try:
         import yaml  # type: ignore
-        with open(path, encoding="utf-8") as f:
-            data = yaml.safe_load(f)
-        return {k: str(v) for k, v in (data or {}).items()}
     except ImportError:
-        data = {}
-        with open(path, encoding="utf-8") as f:
-            for line in f:
-                line = line.rstrip("\n")
-                s = line.strip()
-                if not s or s.startswith("#"):
-                    continue
-                if ":" not in s:
-                    continue
-                key, _, val = s.partition(":")
-                val = val.split(" #", 1)[0].strip()
-                if len(val) >= 2 and val[0] == val[-1] == '"':
-                    val = val[1:-1]
-                data[key.strip()] = val
-        return data
+        return parse_flat_yaml(text)
+    data = yaml.safe_load(text)
+    return {k: str(v) for k, v in (data or {}).items()}
+
+
+def validate(cfg):
+    """字段类型、枚举与单位校验；返回错误消息列表。"""
+    errors = []
+    for k, v in cfg.items():
+        if k not in FIELDS:
+            errors.append("未知配置键 “%s”（已知键: %s）"
+                          % (k, ", ".join(sorted(FIELDS))))
+            continue
+        kind, enum = FIELDS[k]
+        if kind == "enum" and v not in enum:
+            errors.append("%s 取值 “%s” 非法，只能是: %s"
+                          % (k, v, " / ".join(enum)))
+        elif kind == "int":
+            if not v.isdigit() or int(v) < 1:
+                errors.append("%s 必须是正整数（收到 “%s”）" % (k, v))
+        elif kind == "dim" and not DIM_RE.match(v):
+            errors.append("%s 必须带单位（mm/cm/in/pt 等），收到 “%s”"
+                          % (k, v))
+    return errors
+
 
 def esc(v):
-    """转义 LaTeX 文本参数中少数危险字符（配置均为受信文本，仅做最小处理）。"""
-    return v.replace("%", r"\%")
+    """转义普通文本参数中的 LaTeX 特殊字符（配置为受信纯文本）。"""
+    out = []
+    for c in v:
+        if c in "%&_#":
+            out.append("\\" + c)
+        elif c == "$":
+            out.append(r"\$")
+        else:
+            out.append(c)
+    return "".join(out)
+
 
 def main():
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    tdir = sys.argv[1] if len(sys.argv) > 1 else os.path.join(script_dir, "..", "templates")
-    tdir = os.path.abspath(tdir)
-    cfg = load_config(os.path.join(tdir, "config.yaml"))
+    ap = argparse.ArgumentParser(description="由 config.yaml 生成 LaTeX 参数文件")
+    ap.add_argument("--project", required=True,
+                    help="项目目录（含 config.yaml；config*.tex 生成于此）")
+    args = ap.parse_args()
+    tdir = os.path.abspath(args.project)
+    cfg_path = os.path.join(tdir, "config.yaml")
+    if not os.path.exists(cfg_path):
+        print("[gen_config] 缺少 %s" % cfg_path)
+        return 2
+    try:
+        cfg = load_config(cfg_path)
+    except ValueError as e:
+        print("[gen_config] 配置解析失败: %s" % e)
+        return 2
+
+    errors = validate(cfg)
+    if errors:
+        print("[gen_config] 配置校验失败:")
+        for e in errors:
+            print("  - " + e)
+        return 2
 
     banner = ("% Auto-generated by scripts/gen_config.py from config.yaml\n"
               "% 请勿手改本文件；修改 config.yaml 后重新运行 gen_config.py。\n")
 
     # ---- config-class.tex：\documentclass 之前的选项注入 ----
-    class_tex = banner + "\\PassOptionsToClass{%s}{ctexart}\n" % esc(cfg.get("font_size", "12pt"))
+    class_tex = (banner + "\\PassOptionsToClass{%s}{ctexart}\n"
+                 % cfg.get("font_size", "12pt"))
 
     # ---- config.tex：geometry 与文本参数 ----
     geo_keys = ["paperwidth", "paperheight", "orientation", "margin_top",
@@ -67,17 +160,23 @@ def main():
 
     text_keys = ["columns", "main_title", "teacher_head_left"]
     defaults = {"columns": "2"}
+
     def csname(k):  # 下划线转 CamelCase（@ 在导言区不是字母，不可用）
         return "pd" + "".join(w.capitalize() for w in k.split("_"))
+
     macros = []
     for k in text_keys:
         val = cfg.get(k, defaults.get(k, ""))
-        macros.append("\\providecommand{\\%s}{%s}" % (csname(k), esc(val)))
+        if FIELDS[k][0] == "text":
+            val = esc(val)  # 普通文本字段转义 LaTeX 特殊字符
+        macros.append("\\providecommand{\\%s}{%s}" % (csname(k), val))
 
     config_tex = (banner + "\n% --- 纸张与版面几何 ---\n" + geometry
-                  + "\n% --- 文本参数 (\\pd<Key>) ---\n" + "\n".join(macros) + "\n")
+                  + "\n% --- 文本参数 (\\pd<Key>) ---\n"
+                  + "\n".join(macros) + "\n")
 
-    for name, content in [("config-class.tex", class_tex), ("config.tex", config_tex)]:
+    for name, content in [("config-class.tex", class_tex),
+                          ("config.tex", config_tex)]:
         out = os.path.join(tdir, name)
         old = open(out, encoding="utf-8").read() if os.path.exists(out) else None
         if old == content:
@@ -86,6 +185,8 @@ def main():
             with open(out, "w", encoding="utf-8") as f:
                 f.write(content)
             print("[gen_config] 已生成 %s" % out)
+    return 0
+
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

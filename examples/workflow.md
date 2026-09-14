@@ -12,7 +12,11 @@
 - 学生版是否允许翻看提示、是否需要书写空间；教师版需要“最终答案”还是还要给评分要点；
 - 术语、记号、集合约定（例如自然数是否含 0），以及答案所需的严谨程度。
 
-输出一个概念清单（定义、命题、例子、反例、方法、表示法）和依赖关系图。依赖关系决定题目的先后，而不是原材料的页码顺序。
+输出一个概念清单（定义、命题、例子、反例、方法、表示法）和依赖关系图。若原材料缺少能承担功能的引例或反例，标记缺口并补充带来源的候选材料。**原文顺序用于溯源；教学顺序在尊重用户要求和论证依赖的前提下决定，凡偏离原文页码顺序都要记录理由**。对原材料中用 `\pause`、分页或讲稿动作延迟揭示的问与答，记录信息首次可见位置，静态输出保留先判断、后反馈的次序。
+
+## 1.1 Narrative anchor (freeze before drafting)
+
+Record the chapter question, a historical/mathematical/physical/everyday hook when it leads to a concrete mathematical task, the observable conflict it exposes, the unifying thread, key turns, explanations that must remain, limits, and the next-section entry. Omit the hook when it has no such task. A counterexample must alter an identifiable condition and state which property it preserves and breaks. Keep exposition when removing it would damage motivation, terminology, proof precision, or cross-section continuity.
 
 ## 2. 对原材料做“知识—证据—活动”拆解
 
@@ -33,7 +37,7 @@
 
 ## 3. 设计问题链，而非题目清单
 
-每个小节采用如下循环：
+按原文节点顺序处理每个小节。对每个节点依次执行“是否需要前置定义—学生能否完成确定动作—选择唯一主要动作—写反馈—连接下一节点”的判定；只有判定结果需要时才加入下列题型。
 
 1. **进入题**：用熟悉对象、图示或一个可直接操作的例子暴露现象。
 2. **辨认题**：分类、补空、判断、读图，确认学生看到了什么。
@@ -44,11 +48,11 @@
 7. **证明/综合题**：调用已建立的定义和结果，形成定理或结构。原材料中的整段证明必须拆成多问（明确目标 → 凑出关键步骤 → 收束结论），引导学生自己完成证明，而不是一次性要求复现全证。
 8. **回看题**：用一句话概括判据，或说明本节结果如何支持下一节。
 
-题目难度通常按“具体有限例子 → 无限/抽象对象 → 证明与推广”上升。相邻题目只引入一个主要新负担；若需要新记号，先安排一题让学生使用该记号。一道题含多个小问时，用嵌套 `enumerate` 排布各小问并标出依赖，**每一问各自紧跟 `\ansspace{...}` 留出相应书写空间**；不要把多个独立结论塞进同一小问。
+相邻题目每次只引入一个主要新负担；若需要新记号，先给出定义和一个可直接使用的例子。一道题含多个小问时，用嵌套 `enumerate` 排布各小问并标出依赖，**每一问各自紧跟 `\ansspace{...}` 留出相应书写空间**；不要把多个独立结论塞进同一小问。
 
 ## 4. 编写题目和微型知识点
 
-每道题先写“题目规格”，再写面向学生的文字：目标概念、输入、动作、预期产物、可接受答案、常见错误、提示级别和后继题。题干应自洽地给出定义域/陪域、量词、约定和图例；不要依赖教师口头补充。
+每道题先写“题目规格”，再写面向学生的文字：目标概念、输入、动作、预期产物、可接受答案、常见错误、提示和后继题。题干应自洽地给出定义域/陪域、量词、约定和图例；不要依赖教师口头补充。
 
 知识点只在学生已经遇到需要它的时刻出现，长度以能继续做下一题为准。常用形式是：一两句观察 + 一个术语或公式 + 立即可用的小题。不要提前给出本节最终定理，也不要用“显然”替代论证。
 
@@ -56,11 +60,11 @@
 
 ## 5. 组织章节和编号
 
-按概念依赖组织若干无编号小节；题号在全章连续，便于学生引用和教师定位。若采用多文件协作或 AI 并发生成的模式，推荐使用 `enumitem` 宏包的跨环境编号功能：第一节使用 `\begin{enumerate}[series=probchain]`，后续各节使用 `\begin{enumerate}[resume=probchain]`，以保证物理文件分离时题号的绝对连续性。
+按概念依赖组织若干无编号小节；题号在全章连续，便于学生引用和教师定位。多文件协作时统一使用 `probchain` 环境（`\begin{probchain}...\end{probchain}`），由模板内置计数器自动跨小节续号，先后顺序天然决定题号，无需任何手工对位。旧写法 `\begin{enumerate}[series=probchain]`（首节）/ `[resume=probchain]`（后续节）仍被兼容，但新工程一律使用 probchain；两种写法不得混用。切片中严禁 `\setcounter{pdprob}` 或任何版本开关宏：显示题号是渲染结果，逐题身份以 `% qid:` 注释为准。
 
 每节开头可有一个极短的情境或图示，随后立即进入题目。章节末安排综合题，把早先题目的结论重新组合。
 
-建议保留以下元数据（可写在源文件注释或单独 YAML 中）：题号、概念 ID、难度、题型、前置题号、材料出处、答案状态。这样可以自动检查漏题、重复编号和覆盖率，也便于材料更新后的局部重排。
+固定保留以下元数据（可写在源文件注释或单独 YAML 中）：题号、概念 ID、题型、前置题号、材料出处、答案状态。这样可以检查漏题、重复编号和覆盖率，也便于材料更新后的局部重排。
 
 ## 6. 从单一源文件生成两个版本 (工程化文件组织)
 
@@ -98,7 +102,7 @@
 2. **数学检查**：随机抽取定义、边界例子、反例和证明逐项复算；检查量词、集合类型、复合顺序、特殊值（如 0、负数）和有限/无限条件。
 3. **版本检查**：学生版 PDF 中不出现“解、证明、答案、评分”等内容；教师版题目正文与学生版逐题一致；两版页码、目录和图编号可定位。
 4. **编译检查**：使用干净目录编译，至少运行 LaTeX 两遍；处理未定义引用、溢出、空白页、浮动图错位和 TikZ 裁切。可用 `latexmk`，并把 `.aux/.log/.out` 等中间文件放入构建目录。
-5. **试读检查**：请一名没有看过答案的读者完成一小节，记录卡住的位置、歧义题干和所需时间；根据记录改题目链，而不是只增加答案篇幅。
+5. **试读检查**：请一名没有看过答案的读者完成一小节，记录卡住的位置、歧义题干和所需时间；根据记录改题目链，而不是只增加答案篇幅。AI 流程中对应 `prompts/acceptance_prompt.md` 的独立教学验收：由未参与规划写作的新上下文 Agent 分两个阶段审读（先只看学生可见内容，再核对教学与来源），按学习依赖的连贯片段验收——开篇至少与首个实质任务一起读；结论为 `PASS` / `REVISE` / `NEEDS_EVIDENCE` 并绑定所审版本。脚本（编号、泄露扫描、计数核对）与试读/验收并列执行、互不替代：脚本通过不代表教学合格。
 
 ## 9. 迭代和版本管理
 
@@ -114,7 +118,7 @@
 小节 B：直接应用 → 表示转换 → 迁移题
 小节 C：多个结果的组合 → 证明题 → 综合题
 章节回看：术语表、关键判据、未解问题或下一章入口
-附录（教师版）：逐题解答、提示层级、常见错误、评分点、出处对照
+附录（教师版）：逐题解答、必要提示、常见错误、评分点、出处对照
 ```
 
 用这套骨架处理新材料时，先完成概念—依赖表，再写三至五道最小问题链的原型并试做；原型通过数学和可学性检查后才扩展为整章。这样可以保持“问题驱动”是真正的学习路径，而不是把传统讲义的结论机械改成问句。
@@ -123,37 +127,42 @@
 
 当引入大语言模型或多智能体（Multi-Agent）协作时，按如下规范保证稳健性与高吞吐量：
 
-1. **任务粒度切分**：不要让单一模型一次性处理过长的章节。首先使用文本搜索找出所有小标题的行号，然后按小节向多个子 Agent 并发派发任务。
+1. **任务粒度切分**：先由主 Agent 完成叙事锚点、source-map、dependency-map 和 coverage-map，再按小节派发任务；执行子 Agent 固定使用 `flash`，并遵守与主 Agent 相同的输入、输出和验收规则。缺失引例或反例时，补充候选项并附来源与数学功能说明。
 2. **纯粹的内容生成**：在 prompt 中明确约束 AI “**不要输出任何导言区（`\documentclass`）内容**，直接从 `\section*{...}` 和正文/题目环境开始”。各 Agent 的输出直接保存为 `sec1.tex`、`sec2.tex` 等切片文件，最终由全局 `main.tex` 统一 `\input`，可彻底避免宏包冲突和格式杂糅。
-3. **上下文环境衔接**：为确保并行生成的分节在汇总后题号连续，规定第一个 Agent 使用 `\begin{enumerate}[series=probchain]`，后续所有 Agent 使用 `\begin{enumerate}[resume=probchain]`。
-4. **共享规范与模板对齐**：通过传递 `workflow.md` 核心原则和模板文件定义的宏命令给各个子 Agent，统一自定义宏（如 `\ansspace`，`\fillin[答]{宽}`，`\begin{teacherNote}` 以及 `\begin{microknowledge}`），降低后处理难度，实现零干预合并（Zero-intervention merge）。
+3. **上下文环境衔接**：为确保并行生成的分节在汇总后题号连续，所有小节统一使用 `\begin{probchain}...\end{probchain}` 环境，由模板内置计数器自动跨节续号；旧写法 series=/resume= 仅作遗留兼容，不得与 probchain 混用。
+4. **共享规范与模板对齐**：通过传递 `workflow.md` 核心原则和模板文件定义的宏命令给各个子 Agent，统一自定义宏（如 `\ansspace`，`\fillin[答]{宽}`，`\begin{teacherNote}` 以及 `\begin{microknowledge}`）；装配前必须核验数学语义，文件拼接不替代内容审校。
 
 ### 11.1 流水线总览（Mermaid 流程图）
 
 ```mermaid
 flowchart TD
-    A[原材料: 教材/讲义/论文] --> B[步骤1: 章节锚点定位<br/>grep 提取小节行号]
-    B --> C[步骤2: 并发派发子 Agent<br/>prompts/subagent_prompt.md 模板]
+    A[原材料: 教材/讲义/论文] --> B[章节锚点定位<br/>grep 提取小节行号]
+    B --> C[并发派发子 Agent<br/>prompts/subagent_prompt.md 模板]
     C --> D1[子Agent 1 → sec1.tex]
     C --> D2[子Agent 2 → sec2.tex]
     C --> D3[子Agent n → secN.tex]
-    D1 & D2 & D3 --> E{步骤3: 编号检查<br/>check_numbering.py}
+    D1 & D2 & D3 --> E{编号检查<br/>check_numbering.py}
     E -- 发现问题 --> C
-    E -- 通过 --> F[零干预装配<br/>main.tex 机械 \\input]
-    F --> G[步骤4: build.py 双版编译<br/>xelatex 双遍 + 日志诊断 + 失败重试]
+    E -- 通过 --> AV[独立教学验收·原型<br/>acceptance_prompt.md 两阶段审读<br/>开篇与首节一起验收]
+    AV -- REVISE/NEEDS_EVIDENCE --> C
+    AV -- PASS --> F[零干预装配<br/>main.tex 机械 \\input]
+    F --> G[build.py 双版编译<br/>xelatex 双遍 + 日志诊断 + 失败重试]
     G -- 编译失败 --> H[读取诊断摘要<br/>修复切片后重派]
     H --> C
     G -- 编译成功 --> I[compare_versions.py<br/>泄露扫描 + 页数/文本量对比]
     I -- 泄露或异常 --> H
-    I -- 通过 --> J[--git 自动快照提交]
+    I -- 通过 --> AV2{独立教学验收·装配后<br/>跨节接口与实例重访复查}
+    AV2 -- REVISE --> C
+    AV2 -- PASS --> J[--git 自动快照提交]
     J --> K[人工试读验收<br/>Checklist 五项]
     K -- 试读反馈 --> C
 
     subgraph 回归保障
-    R[test_examples.sh<br/>编译 examples/eg.tex 系列]
+    R[test_templates.py<br/>基于当前模板的最小工程回归]
+    R2[test_examples.sh<br/>旧示例参考编译]
     end
     G -. 模板改动后执行 .-> R
 ```
 
-> 节点说明：`check_numbering.py`、`build.py`、`compare_versions.py`、`test_examples.sh`
-> 均位于 Skill 的 `scripts/` 目录，可直接以 `python <脚本> <工作目录>` 调用。
+> 节点说明：`check_numbering.py`、`build.py`、`compare_versions.py`、`test_templates.py`
+> 均位于 Skill 的 `scripts/` 目录，可直接以 `python <脚本> <工作目录>` 调用；独立教学验收的派发规范见 `prompts/acceptance_prompt.md`。`test_examples.sh` 仅编译旧参考样例（eg.tex 系列），不覆盖当前模板，只作历史参考。

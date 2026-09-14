@@ -13,6 +13,24 @@
 % ---- 版面几何与文本参数（config.yaml 自动生成） ----
 \input{config.tex}
 
+% ---- 教师版版面覆盖：A4 竖版、单栏 ----
+% 学生版沿用 config.yaml 的大8开横版双栏；教师版供案头翻阅，固定为 A4 竖版单栏。
+% \geometry 在导言区可重复调用并覆盖先前设置；\pdColumns=1 时 \pdBeginColumns 不产生 multicols 环境。
+\ifdefined\TeacherVersion
+  \geometry{a4paper, portrait, top=2.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm, headheight=25pt}
+  \renewcommand{\pdColumns}{1}
+\fi
+
+% ---- 栏环境起止（统一由此处负责，main.tex/footer.tex 只调用宏） ----
+% multicols 不会因参数为 1 自动退化为单栏（会警告并强制改为双栏），
+% 因此栏数为 1 时不得进入 multicols 环境。
+\newcommand{\pdBeginColumns}{%
+  \ifnum\pdColumns>1 \begin{multicols}{\pdColumns}\fi
+}
+\newcommand{\pdEndColumns}{%
+  \ifnum\pdColumns>1 \end{multicols}\fi
+}
+
 % -----------------------------------------------------------------------------
 % 核心宏包加载
 % -----------------------------------------------------------------------------

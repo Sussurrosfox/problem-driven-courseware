@@ -1,6 +1,6 @@
 # =============================================================================
 # 纯问题驱动自学案 —— 全局参数配置
-# 修改本文件后，运行:  python ../scripts/gen_config.py
+# 修改本文件后，运行:  python <skill>/scripts/gen_config.py --project <本文件所在目录>
 # 将重新生成 config-class.tex 与 config.tex（二者均为自动生成，请勿手改）。
 # 不同课程/学期只需复制本文件改参数，无需触碰 LaTeX 模板。
 # 注意：值为单行文本；若含冒号请用全角“：”或用双引号包裹整个值。
@@ -23,7 +23,8 @@ headheight: 25pt
 columns: 2                 # multicols 栏数
 
 # --- 标题区 ---
-main_title: 章节主标题（例如：群论）
+# 默认值为「学案」；具体课程标题（如「群论学案」）必须先用 ask_question 询问用户确认后填写，严禁自行杜撰。
+main_title: 学案
 
 # --- 页眉页脚文案 ---
 teacher_head_left: 【教师用书·参考解答与教学要点】
