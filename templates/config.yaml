@@ -28,3 +28,16 @@ main_title: 学案
 
 # --- 页眉页脚文案 ---
 teacher_head_left: 【教师用书·参考解答与教学要点】
+
+# --- 对话层（可选；sectiondialogue / exampledialogue）---
+# enabled 取 true / false / 逗号分隔的小节列表（如 sec0,sec1，用于分节逐步改造）；
+# false 时完全沿用旧流程，任何对话块都会被 check_dialogue.py 判为配置矛盾。
+# 单节关闭写法：在该 secN.tex 内加注释 `% dialogue: off-section <理由>` 或
+# `% dialogue: off-example <理由>`（理由必填，登记于 overview-guide/coverage-map）。
+dialogue_enabled: true
+dialogue_section_opening: true   # 每个启用小节必须有且仅有一个 sectiondialogue
+dialogue_example_opening: true   # 每个启用小节的首个入口题必须有绑定的 exampledialogue
+dialogue_max_section_turns: 8    # sectiondialogue 台词句数上限（\speaker 计数）
+dialogue_max_example_turns: 6    # exampledialogue 台词句数上限
+dialogue_student_reveal: prompt_only   # prompt_only（学生版隐藏 \dlgteacher）| full（全显）
+dialogue_require_coverage_hook: true   # 对话块必须在 coverage-map.md 有承接记录

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-TOOL_VERSION = "2.0"
+TOOL_VERSION = "2.1"
 r"""
 build.py — XeLaTeX 双版编译 + 日志验收
 
@@ -51,14 +51,16 @@ def write_json(path, report):
     """写结构化检查结果（批次4交付证据统一格式）。"""
     if not path:
         return
-    import json
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(report, f, ensure_ascii=False, indent=2)
+    evidence.write_report(path, report)
     print("[build] 结构化报告已写入 %s" % path)
 
 for stream in (sys.stdout, sys.stderr):
     if hasattr(stream, "reconfigure"):
         stream.reconfigure(encoding="utf-8", errors="replace")
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import evidence  # noqa: E402
+import gen_config  # noqa: E402
 
 RE_UNDEF_REF = re.compile(
     r"LaTeX Warning: (?:Reference|Citation) `[^']*' .*undefined|"
@@ -316,26 +318,33 @@ def main():
         return check_env()
     workdir = os.path.abspath(args.workdir)
 
-    # ---- 配置时效：config.yaml 比生成文件新时先重新生成（报告 §4.9） ----
-    cfg_yaml = os.path.join(workdir, "config.yaml")
-    cfg_tex = os.path.join(workdir, "config.tex")
-    if os.path.exists(cfg_yaml) and (
-            not os.path.exists(cfg_tex)
-            or os.path.getmtime(cfg_yaml) > os.path.getmtime(cfg_tex)):
-        gen = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                           "gen_config.py")
-        print("[build] config.yaml 已更新，重新生成 config.tex/config-class.tex")
-        gr = subprocess.run([sys.executable, gen, "--project", workdir],
-                            capture_output=True, text=True, encoding="utf-8",
-                            errors="replace")
-        print(gr.stdout.strip())
-        if gr.returncode != 0:
-            print(gr.stderr.strip())
-            return 2
+    # ---- F05：计算摘要前先按 config.yaml 确定性生成两份配置 TeX ----
+    # 调用 gen_config 的函数（非外部进程）；内容相同则不重写（内容比较，
+    # 不看 mtime）；生成失败立即返回错误，不得以旧配置继续构建。
+    gen_rc = gen_config.generate(workdir)
 
-    report = {"tool": "build.py", "tool_version": TOOL_VERSION,
+    report = {"schema_version": evidence.SCHEMA_VERSION,
+              "tool": "build.py", "tool_version": TOOL_VERSION,
               "scope": {"workdir": workdir, "targets": args.targets},
+              "input_digest": None, "pdf_sha256": None,
               "status": "pass", "issues": [], "evidence": {}}
+
+    manifest = evidence.collect_inputs(workdir)
+    pre_digest = evidence.content_digest(manifest)
+    report["input_digest"] = pre_digest
+    if manifest["missing"] or manifest["unresolved"]:
+        report["evidence"]["missing_inputs"] = manifest["missing"]
+        report["evidence"]["unresolved_inputs"] = manifest["unresolved"]
+        print("[build] [警告] 输入证据不完整：missing=%s unresolved=%s"
+              % (manifest["missing"],
+                 [u["target"] for u in manifest["unresolved"]]))
+
+    if gen_rc != 0:
+        report["status"] = "error"
+        report["issues"].append({"severity": "error",
+                                 "message": "配置生成失败，构建中止"})
+        write_json(args.json, report)
+        return 2
 
     if not shutil.which("xelatex"):
         print("error: 未找到 xelatex")
@@ -370,6 +379,25 @@ def main():
                   "teacherNote=%d, fillin=%d（计数一致只是必要条件；"
                   "逐题一致性与题号身份由 check_numbering.py 负责）"
                   % (s["solution"], s["teacherNote"], s["fillin"]))
+
+    # ---- F05：编译结束后重算输入摘要，防止编译期间输入被改动 ----
+    post_digest = evidence.content_digest(evidence.collect_inputs(workdir))
+    report["evidence"]["post_build_input_digest"] = post_digest
+    if post_digest != pre_digest:
+        print("[build] [错误] 编译期间受审输入发生变化（摘要 %s → %s），"
+              "本次构建不能产出 pass"
+              % (pre_digest[:12], post_digest[:12]))
+        collect_issue(report, "both", "error",
+                      "编译期间受审输入变化，构建结果不代表任何单一输入状态")
+        ok = False
+
+    # ---- 本次构建产物哈希绑定：报告只绑本次生成的 PDF ----
+    report["pdf_sha256"] = {
+        t: evidence.sha256_file(os.path.join(workdir, t + ".pdf"))
+        for t in args.targets}
+    report["evidence"]["log_sha256"] = {
+        t: evidence.sha256_file(os.path.join(workdir, t + ".log"))
+        for t in args.targets}
 
     print("[build] 总体结果：%s" % ("通过" if ok else "未通过"))
     report["status"] = "pass" if ok else "fail"

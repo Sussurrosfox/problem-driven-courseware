@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-TOOL_VERSION = "2.0"
+TOOL_VERSION = "2.1"
 r"""
 check_numbering.py — 切片装配与题链结构检查
 
@@ -44,7 +44,8 @@ check_numbering.py — 切片装配与题链结构检查
      出现在本题教师内容结束之后（题间区域）记警告，需人工确认其服务
      后续题目而非本题提示。
 
-  说明：双版 SUMMARY 计数一致性由 build.py 负责；数学正确性归教学验收。
+  说明：双版 SUMMARY 计数一致性由 build.py 负责；数学正确性归教学验收；
+  对话层（sectiondialogue/exampledialogue）结构与泄露由 check_dialogue.py 负责。
 
 退出码: 0=通过, 1=发现问题。
 用法: python check_numbering.py [工作目录] [--init] [--json PATH]
@@ -58,6 +59,9 @@ for stream in (sys.stdout, sys.stderr):
     if hasattr(stream, "reconfigure"):
         stream.reconfigure(encoding="utf-8", errors="replace")
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import evidence  # noqa: E402
+
 SERIES = re.compile(r"\\begin\{enumerate\}\[[^\]]*series=probchain")
 RESUME = re.compile(r"\\begin\{enumerate\}\[[^\]]*resume=probchain")
 INPUT = re.compile(r"\\input\{([^{}]+)\}")
@@ -68,8 +72,10 @@ TOKEN = re.compile(
     r"|\\practicemode\{([^{}]*)\}"         # 3=模式取值
     r"|\\hintline\b")                      # 提示行
 PMODE_OK = ("guided", "unprompted")
-# unprompted 题目块内禁止出现的学生版可见提示环境（begin 分支另行识别）
-HINT_ENVS = ("microknowledge", "hint")
+# unprompted 题目块内禁止出现的学生版可见提示环境（begin 分支另行识别）；
+# 对话块（sectiondialogue/exampledialogue）同理：unprompted 题干区出现对话
+# 即构成隐性提示（入口题场景另由 check_dialogue.py 硬检查）。
+HINT_ENVS = ("microknowledge", "hint", "sectiondialogue", "exampledialogue")
 # 教师专属环境：环境栈内存在这些环境时，内容学生版不可见
 TEACHER_ENVS = ("solution", "teacherNote")
 # 切片禁止改写的全局状态（题号计数器与版本开关）
@@ -301,6 +307,27 @@ def main():
     problems = []
     warnings = []
 
+    # ---- F05：输入证据摘要（本检查不读 PDF，pdf_sha256 恒为 null） ----
+    manifest = evidence.collect_inputs(workdir)
+    digest = evidence.content_digest(manifest)
+    report = {"schema_version": evidence.SCHEMA_VERSION,
+              "tool": "check_numbering.py", "tool_version": TOOL_VERSION,
+              "scope": {"workdir": workdir, "files": []},
+              "input_digest": digest, "pdf_sha256": None,
+              "status": "pass", "issues": [], "evidence": {}}
+    if manifest["missing"] or manifest["unresolved"]:
+        report["evidence"]["missing_inputs"] = manifest["missing"]
+        report["evidence"]["unresolved_inputs"] = manifest["unresolved"]
+
+    def emit_report():
+        report["issues"] = ([{"severity": "error", "message": p}
+                             for p in problems]
+                            + [{"severity": "warning", "message": w}
+                               for w in warnings])
+        if args.json:
+            evidence.write_report(args.json, report)
+            print("[check_numbering] 结构化报告已写入 %s" % args.json)
+
     inputs = sec_inputs(workdir)
     if inputs is None:
         print("[check_numbering] 未发现 main.tex，退化为文件名排序（"
@@ -341,6 +368,7 @@ def main():
 
     files = [f for f in inputs
              if os.path.exists(os.path.join(workdir, f))]
+    report["scope"]["files"] = files
     if not files:
         # 先处理已发现的问题；只有真正空的工程才允许“跳过”
         for w in warnings:
@@ -349,8 +377,12 @@ def main():
             print("[check_numbering] 发现 %d 个问题:" % len(problems))
             for p in problems:
                 print("  - " + p)
+            report["status"] = "fail"
+            emit_report()
             return 1
         print("[check_numbering] 未发现任何 sec*.tex，跳过。")
+        report["status"] = "pass"
+        emit_report()
         return 0
 
     series_seen = 0
@@ -385,19 +417,9 @@ def main():
     if used_legacy and used_probchain_env:
         problems.append("probchain 环境与 series/resume 旧写法混用，题号将错位，请统一为 probchain")
 
-    if args.json:
-        import json
-        report = {"tool": "check_numbering.py", "tool_version": TOOL_VERSION,
-                  "scope": {"workdir": workdir, "files": files},
-                  "status": "fail" if problems else "pass",
-                  "issues": ([{"severity": "error", "message": p}
-                              for p in problems]
-                             + [{"severity": "warning", "message": w}
-                                for w in warnings]),
-                  "evidence": {"qid_count": len(qid_seen)}}
-        with open(args.json, "w", encoding="utf-8") as f:
-            json.dump(report, f, ensure_ascii=False, indent=2)
-        print("[check_numbering] 结构化报告已写入 %s" % args.json)
+    report["status"] = "fail" if problems else "pass"
+    report["evidence"]["qid_count"] = len(qid_seen)
+    emit_report()
 
     for w in warnings:
         print("[check_numbering] [警告] " + w)

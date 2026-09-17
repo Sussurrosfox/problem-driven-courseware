@@ -110,9 +110,13 @@ flowchart TD
 
 - `gen_config.py`：读取 `config.yaml` 自动生成 `config.tex` 与 `config-class.tex`；
 - `check_numbering.py`：检查切片题链栈式结构、标签闭合与编号连续性；
+- `check_dialogue.py`：检查课堂对话层（`sectiondialogue`/`exampledialogue`）角色平衡、密度与悬念设置，杜绝超前剧透；
 - `build.py`：调用 XeLaTeX 双遍编译，严格核对双版本 SUMMARY 计数，拦截 Overfull 与宏包告警；
-- `compare_versions.py`：对学生版 PDF 进行源级防泄露扫描，验证答案完全隔离；
-- `test_examples.sh`：样例与模板回归测试套件。
+- `compare_versions.py`：对学生版 PDF 进行源级防泄露扫描，验证答案完全隔离与启发式疑似项复核；
+- `evidence.py`：证据与溯源管理核心工具，负责输入指纹计算、材料卡片机器索引与链条闭合核验；
+- `deliver.py`：交付门禁与原子发布脚本（Schema v2），汇总结算技术检查与两阶段教学验收，安全发布至 `release/`；
+- `prompt_dialog.py`：交互式课堂对话开关与研学案配置初始化向导；
+- `test_runtime.py`：端到端自动化回归测试套件。
 
 ---
 

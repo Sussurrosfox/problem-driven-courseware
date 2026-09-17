@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-TOOL_VERSION = "2.0"
+TOOL_VERSION = "2.2"
 r"""
 compare_versions.py — 学生版/教师版 PDF 对比检查
 
@@ -33,6 +33,7 @@ pdftotext 抽取失败会立即报错退出（退出码 2），绝不按空文�
        1=发现硬失败问题, 2=缺少依赖、输入文件、文本抽取失败或证据缺失。
 """
 import argparse
+import hashlib
 import os
 import re
 import shutil
@@ -42,6 +43,9 @@ import sys
 for stream in (sys.stdout, sys.stderr):
     if hasattr(stream, "reconfigure"):
         stream.reconfigure(encoding="utf-8", errors="replace")
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import evidence  # noqa: E402
 
 # 默认禁用词：教师版专属的中文标记与英文单词（英文用词边界正则）
 DEFAULT_FORBID_CN = [
@@ -55,6 +59,62 @@ RE_SUMMARY = re.compile(
     r"teacherNote=(\d+),\s*fillin=(\d+)")
 RE_ENV_TITLE = re.compile(
     r"\\begin\{(?:solution|teacherNote)\}\[([^\]]+)\]")
+RE_QID = re.compile(r"(?m)^\s*%\s*qid:\s*([^\s%|]+)")
+
+
+def mask_comments(text):
+    """与 strip_comments 同判定规则，但注释部分用空格遮盖（保持偏移），
+    供定位答案在原文中的位置使用。"""
+    out = []
+    for line in text.splitlines():
+        i = 0
+        while True:
+            j = line.find("%", i)
+            if j < 0:
+                out.append(line)
+                break
+            k = j - 1
+            while k >= 0 and line[k] == "\\":
+                k -= 1
+            if (j - 1 - k) % 2 == 1:
+                i = j + 1
+            else:
+                out.append(line[:j] + " " * (len(line) - j))
+                break
+    return "\n".join(out)
+
+
+def suspect_issue_id(qid_or_source, norm, kind="fillin-answer-leak-suspect"):
+    """疑似项稳定 ID：由 qid/可定位位置、问题类型与报告 schema（2）派生
+    的确定性短哈希；同一输入重复运行结果相同，供 review-notes.json 复核
+    记录精确对账。"""
+    raw = "2|%s|%s|%s" % (kind, qid_or_source, norm)
+    return "CMP-" + hashlib.sha256(raw.encode("utf-8")).hexdigest()[:12]
+
+
+def locate_fillin_answers(raw_text):
+    """extract_fillin_answers 的定位版：返回 [(raw, qid_or_None)]。
+
+    答案从遮盖注释（保长）后的文本提取（避免注释掉的 \\fillin 被计入），
+    qid 从原文扫描（qid 本身在注释中），两者偏移一致；qid 取答案位置
+    之前最近的 `% qid:` 注释。
+    """
+    masked = mask_comments(raw_text)
+    qid_marks = [(m.start(), m.group(1)) for m in RE_QID.finditer(raw_text)]
+    answers = extract_fillin_answers(masked)
+    out = []
+    pos = 0
+    for raw in answers:
+        i = masked.find(raw, pos)
+        if i < 0:
+            i = masked.find(raw)
+        qid = None
+        if i >= 0:
+            pos = i + len(raw)
+            before = [q for off, q in qid_marks if off <= i]
+            qid = before[-1] if before else None
+        out.append((raw, qid))
+    return out
 
 
 def strip_comments(text):
@@ -216,18 +276,26 @@ def main():
     args = ap.parse_args()
     workdir = os.path.abspath(args.workdir)
 
-    report = {"tool": "compare_versions.py", "tool_version": TOOL_VERSION,
+    report = {"schema_version": evidence.SCHEMA_VERSION,
+              "tool": "compare_versions.py", "tool_version": TOOL_VERSION,
               "scope": {"workdir": workdir, "diagnostic": args.diagnostic},
+              "input_digest": None, "pdf_sha256": None,
               "status": "pass", "issues": [], "evidence": {}}
+
+    # ---- F05：输入证据摘要（受审源内容） ----
+    manifest = evidence.collect_inputs(workdir)
+    report["input_digest"] = evidence.content_digest(manifest)
+    if manifest["missing"] or manifest["unresolved"]:
+        report["evidence"]["missing_inputs"] = manifest["missing"]
+        report["evidence"]["unresolved_inputs"] = manifest["unresolved"]
 
     def fail_env(msg):
         print(msg)
         report["status"] = "error"
         report["issues"].append({"severity": "error", "message": msg})
         if args.json:
-            import json
-            with open(args.json, "w", encoding="utf-8") as f:
-                json.dump(report, f, ensure_ascii=False, indent=2)
+            evidence.write_report(args.json, report)
+            print("[compare] 结构化报告已写入 %s" % args.json)
         return 2
 
     if not shutil.which("pdftotext"):
@@ -237,6 +305,10 @@ def main():
     if not (os.path.exists(stu) and os.path.exists(tea)):
         return fail_env("[compare] 缺少 student.pdf 或 teacher.pdf，"
                         "请先运行 build.py。")
+
+    # 本检查读取双版 PDF：报告必须绑定实际哈希
+    report["pdf_sha256"] = {"student": evidence.sha256_file(stu),
+                            "teacher": evidence.sha256_file(tea)}
 
     # 文本抽取失败必须报错，禁止按空文本继续比较
     stu_pages = pdf_pages_text(stu)
@@ -261,10 +333,12 @@ def main():
     forbid = [w for w in DEFAULT_FORBID_CN + args.forbid
               if w not in args.allow]
     src_texts = {}
+    raw_texts = {}
     for name in sec_sources(workdir):
         with open(os.path.join(workdir, name),
                   encoding="utf-8", errors="replace") as f:
-            src_texts[name] = strip_comments(f.read())
+            raw_texts[name] = f.read()
+        src_texts[name] = strip_comments(raw_texts[name])
     for text in src_texts.values():
         for title in RE_ENV_TITLE.findall(text):
             # 教师版环境标题在渲染时均带有【...】
@@ -283,22 +357,31 @@ def main():
                             % (pno, ctx))
 
     # ---- 2. 疑似 \\fillin 答案泄露（供人工复核）----
+    suspect_issues = []  # 结构化疑似项（带稳定 issue_id，供复核对账）
     if not args.no_answer_check:
         seen, answers = set(), []
-        for text in src_texts.values():
-            for raw in extract_fillin_answers(text):
+        for fname in src_texts:
+            for raw, qid in locate_fillin_answers(raw_texts[fname]):
                 norm = normalize_answer(raw)
                 if len(norm) >= args.answer_min_len and norm not in seen:
                     seen.add(norm)
-                    answers.append((raw.strip(), norm))
+                    answers.append((raw.strip(), norm, qid, fname))
         n_hit = 0
-        for raw, norm in answers:
+        for raw, norm, qid, fname in answers:
             hits = find_hits([re.sub(r"\s+", "", p) for p in stu_pages], norm)
             for pno, ctx in hits:
                 n_hit += 1
                 suspicions.append(
                     "学生版第 %d 页疑似泄露 \\fillin 答案 “%s”"
                     "（需人工复核）: …%s…" % (pno, raw[:30], ctx[:40]))
+                suspect_issues.append({
+                    "severity": "review",
+                    "issue_id": suspect_issue_id(qid or fname, norm),
+                    "kind": "fillin-answer-leak-suspect",
+                    "qid": qid,
+                    "location": {"page": pno,
+                                 "context": re.sub(r"\s+", " ", ctx)[:80]},
+                    "message": suspicions[-1]})
                 break  # 每个答案只报第一处
         print("[compare] \\fillin 答案源级检查：%d 个候选答案，%d 个疑似命中"
               % (len(answers), n_hit))
@@ -371,14 +454,19 @@ def main():
               "源级计数一致、无疑似答案项。")
     report["issues"] = (
         [{"severity": "error", "message": p} for p in problems]
-        + [{"severity": "review", "message": s} for s in suspicions])
+        + suspect_issues)
     report["evidence"].update({
         "src_counts": {"solution": n_sol_src, "teacherNote": n_note_src},
-        "suspect_count": len(suspicions)})
+        "suspect_count": len(suspicions),
+        # 已读取证据哈希：PDF 抽取文本与双版日志，供交付方核对新鲜度
+        "pdf_text_sha256": {
+            "student": hashlib.sha256(stu_text.encode("utf-8")).hexdigest(),
+            "teacher": hashlib.sha256(tea_text.encode("utf-8")).hexdigest()},
+        "log_sha256": {
+            t: evidence.sha256_file(os.path.join(workdir, t + ".log"))
+            for t in ("student", "teacher")}})
     if args.json:
-        import json
-        with open(args.json, "w", encoding="utf-8") as f:
-            json.dump(report, f, ensure_ascii=False, indent=2)
+        evidence.write_report(args.json, report)
         print("[compare] 结构化报告已写入 %s" % args.json)
     return 1 if problems else 0
 

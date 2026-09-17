@@ -79,6 +79,14 @@
   % 题型标签：教师版显示【xx题】字样，便于把握设计意图
   \newcommand{\qtype}[1]{【#1】}
 
+  % 对话台词（教师版）：角色名加粗显示（黑白印刷友好，不依赖彩色区分）
+  \newcommand{\speaker}[2]{\par\noindent{\bfseries #1：}#2}
+
+  % 教师专属台词 \dlgteacher{...}：会泄露答案的句子必须放入其中，
+  % 学生版默认隐藏（dialogue_student_reveal: full 时同样显示）；
+  % 教师版以深灰色排印以示区别（黑白印刷安全）
+  \newcommand{\dlgteacher}[1]{{\color{black!55}#1}}
+
   % 题目状态标签 \practicemode{guided|unprompted}（可选，缺省 guided）：
   % unprompted 为无提示纯习题，教师版显示【无提示练习】标签，学生版隐藏。
   % 用 \providecommand 兼容，取值非法时发出编译警告。
@@ -156,6 +164,19 @@
   % 题型标签：学生版隐藏【xx题】字样（设计流程保留题型，但不明示）
   \newcommand{\qtype}[1]{}
 
+  % 对话台词（学生版）：与教师版同样的提问、观察和未决问题，角色名不着色
+  \newcommand{\speaker}[2]{\par\noindent{\bfseries#1：}#2}
+
+  % 教师专属台词：学生版默认整句隐藏；config.yaml 设
+  % dialogue_student_reveal: full 时学生版同样显示（受 \pdDialogueStudentReveal 控制）
+  % 注意：\pdDialogueStudentReveal 由 \providecommand 定义（\long 宏），与 \def
+  % 定义的宏直接 \ifx 比较恒为假（\long 状态不同）；必须先 \edef 展开再比较。
+  \providecommand{\pdDialogueStudentReveal}{prompt_only}
+  \newcommand{\dlgteacher}[1]{%
+    \edef\pdDlgRevealA{\pdDialogueStudentReveal}%
+    \edef\pdDlgRevealB{full}%
+    \ifx\pdDlgRevealA\pdDlgRevealB #1\fi}
+
   % 题目状态标签：学生版隐藏（unprompted 题的引导隐藏由切片写作纪律保证，
   % 并由 scripts/check_numbering.py 检查题块内不得含提示标记）
   \providecommand{\practicemode}[1]{}%
@@ -227,6 +248,58 @@
   \par\vspace{0.8ex}%
   \begin{mdframed}[style=pdKnowledgeBoxStyle]%
   \textbf{#1}\par\vspace{0.3ex}\small
+}{%
+  \end{mdframed}\par\vspace{0.8ex}%
+}
+
+
+% -----------------------------------------------------------------------------
+% 对话层（可选；受 config.yaml 的 dialogue_* 开关控制，宏本身两版恒定可用）
+% 配色一律黑白灰（印刷友好，不依赖彩色）：sectiondialogue 用黑色实线框，
+% exampledialogue 用黑色虚线框，背景均为白色，靠线型区分两类对话。
+% sectiondialogue：\section* 之后的短课堂片段（默认 4–8 句台词），
+%   负责暴露本节核心冲突与未决问题，位于首个实质题/定义之前；
+% exampledialogue：首个入口题题干之前的“提问—猜测—检验—暂时结论”
+%   引例对话（默认 3–6 句），用注释 % dialogue: qid=<入口题qid> 绑定题目。
+% 台词条目一律用 \speaker{角色}{台词}，一句台词只安排一个数学动作；
+% 会泄露答案的台词必须放入 \dlgteacher{...}（学生版默认隐藏）；
+% 对话块内禁止 solution/teacherNote/\fillin/\ansspace（check_dialogue.py 硬检查）。
+% -----------------------------------------------------------------------------
+\mdfdefinestyle{pdSectionDialogueStyle}{%
+  linecolor=black,
+  linewidth=0.8pt,
+  backgroundcolor=white,
+  roundcorner=0pt,
+  innertopmargin=6pt,
+  innerbottommargin=6pt,
+  innerleftmargin=8pt,
+  innerrightmargin=8pt,
+  nobreak=true
+}
+\newenvironment{sectiondialogue}[1][本节引入]{%
+  \par\vspace{0.8ex}%
+  \begin{mdframed}[style=pdSectionDialogueStyle]%
+  \textbf{#1}\par\vspace{0.2ex}\small
+}{%
+  \end{mdframed}\par\vspace{0.8ex}%
+}
+
+\mdfdefinestyle{pdExampleDialogueStyle}{%
+  linecolor=black,
+  linewidth=0.8pt,
+  backgroundcolor=white,
+  tikzsetting={draw=black, dash pattern=on 4pt off 2pt},
+  roundcorner=0pt,
+  innertopmargin=6pt,
+  innerbottommargin=6pt,
+  innerleftmargin=8pt,
+  innerrightmargin=8pt,
+  nobreak=true
+}
+\newenvironment{exampledialogue}[1][引例讨论]{%
+  \par\vspace{0.8ex}%
+  \begin{mdframed}[style=pdExampleDialogueStyle]%
+  \textbf{#1}\par\vspace{0.2ex}\small
 }{%
   \end{mdframed}\par\vspace{0.8ex}%
 }

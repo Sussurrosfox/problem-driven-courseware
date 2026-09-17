@@ -1,6 +1,6 @@
 ---
 name: problem-driven-courseware
-description: 将数学教材、论文、讲义或课件改造成以问题为入口、保留必要解释并强调引例与反例的研学案和自学文稿。采用单源双输出生成学生版与教师版，依据概念依赖和章节主线组织题链。当用户提到问题驱动课件、自学案、研学案、8K作业纸、学生版与教师版双输出或数学教材问题化改造时使用此 skill。
+description: 将数学教材、论文、讲义或课件改造成以问题为入口、保留必要解释并强调引例与反例的研学案和自学文稿。采用单源双输出生成学生版与教师版，依据概念依赖和章节主线组织题链，可选用受控课堂对话层（sectiondialogue/exampledialogue）改造 section 开头与入口引例。当用户提到问题驱动课件、自学案、研学案、8K作业纸、学生版与教师版双输出、数学教材问题化改造或课堂讨论体/对话式引例时使用此 skill。
 ---
 
 # 问题驱动数学自学案制作工作流 (problem-driven-courseware)
@@ -9,358 +9,84 @@ description: 将数学教材、论文、讲义或课件改造成以问题为入�
 
 文稿采用“单源双输出（Single-source, Dual-output）”原则：通过条件宏在同一套源文件中无缝生成**学生版**（隐藏解答、留足书写白、附姓名学号栏）与**教师版**（紧跟题目呈现彩色参考解答、教学要点、易错分析与评分标准）。
 
-> **规则权威来源**：本文件是教学规范、TeX 接口与运行协议的唯一生效位置；`prompts/` 与 `templates/` 中的注释只是应用层摘要，口径冲突时以本文件为准。文末“更新约定”仅记录变更历史，不构成第二套生效规则。
+> **规则路由制**：本文件只负责用途、摘要与路由；各规则只在下表链接的指定文件维护一份。提示词和模板不得另造冲突规则，口径冲突时以路由目标文件为准。文末“更新约定”仅记录变更历史，不构成第二套生效规则。
 
 ---
 
 ## 一、 触发条件与适用场景
 
-- **触发关键词**：纯问题驱动、问题链、问题驱动课件、自学案、研学案、8K 作业纸、学生版与教师版双输出、数学教材问题化改造。
+- **触发关键词**：纯问题驱动、问题链、问题驱动课件、自学案、研学案、8K 作业纸、学生版与教师版双输出、数学教材问题化改造、课堂讨论体、对话式引例（后两者对应可选对话层）。
 - **输入材料**：数学教材某章、讲义 Markdown、TeX 源码、定理列表等。
-- **适用场景**：
-  - 高等代数、抽象代数、微积分、数论等专业数学课程的自主探究导学案开发。
-  - 大开本（大8开横版双栏）试卷/练习册/课堂研学案制作。
-  - 必须采用多子 Agent 并发切片生产完整章节内容（严格实行“一节一子 Agent”派发机制）。
+- **输出**：`self/` 独立目录（脚手架 + sec*.tex 切片 + `.pd/` 运行与交付证据 + `release/` 发布产物）；没有 `self` 则新建，重名冲突严禁静默覆盖、须询问用户。
+- **适用场景**：专业数学课程的自主探究导学案开发；大开本（大8开横版双栏）试卷/练习册/课堂研学案制作；多子 Agent 并发切片生产完整章节内容（严格实行“一节一写作者”派发机制）。
 
----
+## 二、 核心约束摘要（权威文本见路由目标）
 
-## 二、 核心制作理念与问题链设计原则
+- **数学正确性**：原文核心论证链必须保留；每个例子/反例由主 Agent 独立重算（定义域、量词、边界、对象类型、前置闭合）。→ `references/production.md` §一/§六
+- **依赖闭合**：题目前必须提供其所需对象、运算、记号、维数条件和前置结论；依赖一律按**学生实际可见内容**检查，仅在教师版出现的结论不构成闭合。→ `references/production.md` §二、`prompts/subagent_prompt.md` 第 8 条
+- **揭示边界**：按小问及其学习目标判断；此前内容已完成该小问唯一数学动作的，删除/改写该小问，不得以同一大题后续动作豁免。→ `prompts/subagent_prompt.md` 第 8b 条、`prompts/acceptance_prompt.md`
+- **单源双输出纪律**：禁止分别手工改写学生版和教师版；差异只能由模板宏产生（`\qtype`/`\practicemode`/`solution`/`teacherNote`/`\fillin`/`\ansspace`/`\dlgteacher`）。→ `references/tex-interface.md` §三
+- **qid 纪律**：每题一级 `\item` 前有全章唯一 `% qid:` 注释；切片严禁重置计数器或版本开关宏；跨题引用用 `\label{q:...}`/`\ref` 不手填题号。→ `references/tex-interface.md` §四
+- **材料批准链**：正文材料必须可沿“正文 → 卡片 ID → research-brief 需求 → coverage-map 登记 → 来源摘录”回溯；只有主 Agent 两道闸门后的 `approved` 卡片可进入正文。→ `prompts/research_prompt.md`、`references/production.md` §四步骤 2
+- **证据与失效**：任何受审输入变化使旧教学 PASS、旧检查报告与旧候选失效；只有当前完整证据能生成新的 release。→ `references/production.md` §四步骤 3.5/5.5
+- **文风**：简明严谨、概念克制，禁机械中括号标签，陈列用 enumerate。→ `prompts/subagent_prompt.md` 第 10–12 条
 
-问题驱动的核心是让学生先遇到可观察的现象，再用问题、解释和证明逐步命名与概括它。引例可以来自历史、数学、物理或日常生活，但必须导向本节明确的数学任务；反例必须改变可识别的条件并说明被破坏的性质。凡涉及学生无法凭既有知识操作的新对象、新运算或新记号，必须先给出最小必要定义。
+## 三、 文件路由表（每项规则的权威维护位置）
 
-所有任务使用同一套规则和同一验收标准，不设置 P0/P1/P2 或其他等级。先完成原文映射、依赖检查和覆盖记录，再按记录生成题链；每个节点只保留能完成其学习目标的内容，其他内容删除并在覆盖表说明原因。
-
-问题链不得按固定模板机械循环。先恢复原材料的知识顺序和论证依赖，再为每个知识单元执行下列固定题型判定；不满足条件的题型不得添加。
-
-1. **进入题（Entry）**：用直观熟悉的具象对象、图示或最小计算实例暴露数学现象。
-2. **辨认题（Identify）**：分类、填空、判断或读图，引导学生自主捕捉并确认结构共性。
-3. **构造题（Construct）**：要求学生亲自动手构造、画图、列举满足特定条件的对象。
-4. **反例题（Counterexample）**：变动某一约束条件，引导学生寻找失效反例，体会条件的必要性与概念边界。
-5. **微型知识点（Microknowledge）**：**（在学生完成前置探究后插入，或在后续题需要新概念前穿插）** 提供 2~3 行以内的精准定义、记号或术语，严禁提前剧透后续定理。若后续题目需要新的术语、记号或前置定义，必须在题目之间及时穿插简要讲解，严禁题目依赖未经讲解的知识点。
-6. **形式化题（Formalize）**：引导学生将自然语言直觉抽象为带全称量词 $\forall$、存在量词 $\exists$ 的严密数学表达。
-7. **迁移题（Transfer）**：变换集合载体（如从数集迁移到矩阵群、置换群或函数空间），检验概念普适性。
-8. **证明/综合题（Proof & Synthesis）**：调用前面逐步建立的判定条件与引理，完成命题严谨推导。**原材料中的整段证明必须拆为多问**（如：明确目标 → 凑出关键等式 → 收束结论），引导学生自己走完证明，而不是一次性要求学生复现全证。
-9. **回看题（Review）**：一句话提炼核心判据，反思内在联系，并铺垫承接下一小节。
-
-### 内容块判定
-
-- `discussion`：仅在能导向本节明确数学任务时使用，并在同一节写出讨论落点；否则不写。
-- `exposition`：删去会损失动机、精度或跨节连贯性时保留；否则删除。
-- `proofstrategy`：**每道证明题前必须**写出学生独立推进所需的关键引理和路线，不写出结论。
-- `knowledgebox`：**每节末必须**总结已建立的判据、适用条件、限制和下一节接口；不放尚未讲解的定义。
-
-内容类型与合法 TeX 写法对应表（除表列环境外，其余均为普通段落，**没有同名 LaTeX 环境**，不得自造）：
-
-| 内容类型 | 合法 TeX 写法 |
+| 文件 | 职责（何时读取） |
 |---|---|
-| discussion / exposition | 普通叙述段落 |
-| proofstrategy | 证明题前的加粗引导段 `\textbf{证明策略：}……`，不泄露结论 |
-| microknowledge | `\begin{microknowledge}[标题]...\end{microknowledge}`（实线框，前置定义） |
-| knowledgebox | `\begin{knowledgebox}[本节结论]...\end{knowledgebox}`（虚线框，节末结论） |
+| `SKILL.md` | 本文件：用途、触发、摘要、路由、最短入口（启动 skill 时） |
+| `references/production.md` | 多阶段运行流程、三张映射表协议、题型判定、practice_mode 判定、材料批准、对话层协议、pdstate attempt 状态机、独立验收调度、构建与 deliver 门禁、恢复方式、质量验收清单（主 Agent 规划/派发/汇总/交付时；对话协议节仅启用对话层时加载） |
+| `references/tex-interface.md` | 合法环境/宏、config.yaml 全部字段、qid/card/dialogue/label 注释规范、双版可见性、入口文件与分层架构（写 TeX 或修改模板/配置/检查脚本时） |
+| `prompts/subagent_prompt.md` | 切片写作者任务包清单、派发模板、小问判定规则（揭示边界/证明支架/microknowledge/文风）；开篇、对话改造为可选段落（派发切片子 Agent 时） |
+| `prompts/research_prompt.md` | 材料需求字段、来源类型与最小证据字段、候选与批准的权限分工、长度预算（派发研究核验 Agent 与两道闸门时） |
+| `prompts/acceptance_prompt.md` | 两阶段输入边界、统一判例、逐项处置、acceptance JSON/review-notes 证据格式、保守失效方案（独立教学验收时） |
+| `templates/sec_template.tex` | 可编译最小示范切片；注释只解释示例特殊点（起草切片时参照） |
+| `flow.md` / `teacher-guide.md` | 课堂实施闭环与教师端工具（**只在课堂实施任务中读取**，生成讲义时不必加载） |
+| `templates/` 其余 | main/header/footer/config.yaml/student/teacher 骨架、overview-guide、classroom-plan、error-log（脚手架与课堂模板） |
+| `scripts/` | 构建、检查、证据、运行契约、交付脚本（见 §四命令序列；各脚本 docstring 为接口说明） |
+| `examples/` | 旧示例与方法论参考（不作回归证据） |
 
-引例、反例和历史材料不是装饰项：每一项都要在 `coverage-map.md` 或章节总览中写明它改变了哪个判断、暴露了哪条边界或支撑了哪一步证明；无法说明功能时删除。若原材料中缺少能承担功能的引例或反例，可补充带明确来源和数学功能说明的材料，严禁编造来源。
+## 四、 最短操作入口
 
-### 生成前协议（强制）
-
-任何生成任务必须先建立三个内部产物，之后才可写题目：
-
-1. **原文骨架表**：按原文实际顺序列出每个定义、记号、例题、命题、证明和结论，并记录来源页或行号。原文顺序用于**溯源**；学案的教学顺序在尊重用户要求和论证依赖的前提下决定，凡偏离原文顺序必须在覆盖表记录理由，不得以“适合出题”为理由无理由提前或合并。
-2. **依赖表**：对每个节点列出学生在动笔前必须知道的对象、运算、维数条件、记号和前置结论。依赖未闭合时，先补材料或拆分单元，不得直接出题。依赖一律按**学生实际可见内容**检查：仅在教师版出现的结论不构成学生侧依赖闭合。
-3. **覆盖与变更表**：记录每个原文节点在学案中的位置、对应问题或材料、是否删改及理由。原文证明必须保留结论和关键论证链，删去内容必须可追溯。
-4. **揭示顺序表（可并入覆盖表）**：对原材料中用 `\pause`、分页或讲稿动作实现延迟揭示的节点，识别其中的问题、观察、提示、答案与后续概括，记录**信息首次可见位置**；静态输出必须保留先判断、后反馈的次序，不得把答案提前并入背景叙述。
-
-每个学习单元必须形成“材料/定义 → 最小示例 → 可完成的问题 → 反馈 → 下一节点”的闭环。问题可以促进发现，但不能让学生猜测尚未定义的新对象、新运算和新记号；“先探究后定义”只适用于学生能够凭既有知识完成的观察。
-
-问题设计检查四点：顺序正确、依赖闭合、每题只有一个主要认知动作、答案能显示学生是否掌握目标。不要为了凑齐题型而制造反例、迁移题或形式化题。
-
-### 题目状态字段 practice_mode（guided / unprompted）
-
-每道题在台账与源文件中带有统一状态字段 `practice_mode`，取值与含义如下：
-
-- **guided（常规引导题，缺省值）**：允许题前材料、微型知识点、提示行或分步提示；用于首次引入知识点、关键转折和综合题。
-- **unprompted（无提示纯习题）**：学生版只呈现自洽题干和书写空间，不添加研究目的、解题方向、提示、步骤性小问或暗示性过渡；教师版仍保留完整参考解答、唯一推荐讲法、易错点和评分点。
-
-**unprompted 不是省略必要定义的快捷方式**：题干所需对象、运算、记号和条件必须已经在此前材料或示范题中明确给出。若题目引入新知识、改变主要方法或存在依赖缺口，必须恢复为 guided，并补充最小前置说明。
-
-选题与定组时，按以下规则确定 `practice_mode`，不凭题号、篇幅或课堂时间调整：
-
-1. 同一知识点先保留至少 1 道 guided 示范题，确保入口、关键转折和书写规范已经示范。
-2. 同一知识点的后续题目只有在主要动作、所用定义和解法骨架与示范题相同，且仅更换数据、对象或表述时，才标为 unprompted。
-3. 只要新增关键转折、反例边界、证明负担、表示法或迁移对象，就标为 guided；只有题干自足且满足第 2 条时才可标为 unprompted。
-4. 每个知识点保留至少 1 道 guided 示范题；其余题目逐题按上述条件判定，不能因题量或时间改变状态，也不能用 unprompted 隐藏题量问题。
-
-### 固定执行顺序（不得跳步）
-
-处理一份新材料时，严格按以下顺序执行。每一步有明确产物；产物未完成，不得进入下一步：
-
-1. **读取原文**：按文件顺序读取全部材料，不只读取标题、目录或局部片段。
-2. **建立 `source-map.md`**：每行记录 `编号 | 原文锚点 | 原文内容类型 | 核心陈述 | 所需前置 | 后续用途`。内容类型只能从“定义、记号、运算、例题、性质、命题、证明、结论、背景”中选择。
-3. **建立 `dependency-map.md`**：每行记录 `节点编号 | 必须先知道什么 | 学案中首次出现位置 | 是否已闭合`。任何“否”都必须先补材料或调整顺序。
-4. **建立 `coverage-map.md`**：每行记录 `原文节点 | 学案位置 | 学习目标 | 对应问题/材料 | 保留或删改理由`。没有对应记录的原文核心节点不得删除。题目记录行还须包含字段：`qid | 题号 | 知识点 | 主要动作 | practice_mode | 是否同知识点首题 | 预计时间 | 推荐讲法 | 易错点 | 来源`；其中 `qid` 是全章唯一的稳定题身份（与切片中 `% qid:` 注释一致，显示题号只是渲染结果）；`practice_mode=unprompted` 的题必须注明所依赖的示范题号或知识点 ID，便于检查前置闭合。若补充开篇引例/历史注记素材亦须在此逐条登记来源与核实结论。
-5. **设计学习单元**：只按三张表的顺序编写。每个单元先写材料和最小示例，再写问题、提示、答案和教师批注；问题类型按目标选择，不按清单凑数。
-6. **内容审校后再排版**：逐题检查来源锚点、依赖闭包、维数/记号、证明链和答案可解性；可为审读制作 TeX 草稿，但只有通过内容审校与独立教学验收（步骤 4.5）后才装配为最终 PDF 交付。
-
-遇到材料过长时，仍按文件顺序分段读取；先完成全局 `source-map.md`、`dependency-map.md` 和 `coverage-map.md`，再起草。任何执行者不得自行创造替代台账或改变全局顺序。若依赖无法确定，标记为“待审”，停止该节点并先补齐依赖记录。
-
-### 问题生成的最小决策树
-
-对每个原文节点依次判断：
-
-1. 学生是否需要一个新定义、记号或运算？需要则先写材料卡和最小例子。
-2. 学生能否用已有材料完成一个确定动作？不能则补前置或拆题；补齐前置后仍不能完成则删除该题。
-3. 该节点的目标是计算、辨认、解释、反例、形式化、证明还是迁移？只选择对应的一种主要动作。
-4. 后续题是否依赖本题答案？依赖则在本题后加入**学生可见**的反馈、核对材料或后续概括，再进入后续题；仅在教师版出现的参考结论不构成依赖闭合。
-5. 是否改变了原文顺序？改变则必须在 `coverage-map.md` 写出理由；没有充分理由就恢复原顺序。
-
-### 核心文风与概念克制原则
-- **简明严谨的文风**：全篇必须使用严肃、规范、精炼的现代数学学术语言。严禁使用戏谑、网络流行语、口语化调侃或夸张修辞（如严禁出现“罪魁祸首”、“单身狗”、“雪崩”、“合宪性”、“惊人分野”、“无情打击”等）。
-- **概念克制**：**严谨不意味着引入过多额外的概念**。严禁脱离原材料主线生硬堆砌高级抽象术语（例如在初等群论中无端引入繁冗的范畴论深层术语），只保留完成当前命题推导所必需的核心代数概念，保持表达的纯粹与克制。区分**完成当前动作所需的语言**与**仅供导航的名称**：前者必须在使用前明确；后者可少量点名，但不得成为解释当前现象的必要前提，也不得以“将在后续小节定义”豁免当前任务所需的前置。
-- **知识自足性与前置定义原则**：**必须确保题目中所用知识对学生而言是已知且明确的，严禁题目依赖未经讲解的知识点**。若题目涉及尚未学过或需要严格统一的新对象、新运算或新记号（例如高维向量定义、向量加法与数乘法则、内积/点乘公式、矩阵乘法法则、逆矩阵定义、Kronecker 记号等），**严禁未经定义便直接出题**；可为此适当在**题干前**（通过小节导引、题前穿插 `\begin{microknowledge}` 微型知识点卡片）或**题干中**（通过先行陈述）增加精准的定义与必要讲解，确保学生动笔前已有明确可操作的代数规则可依。
-
-### 题链整体性与研究动机自然衔接
-制作全节题目时，应当注重题链的前后逻辑承接。题干开头若需阐明研究本题的目的、与前题或前置概念的内在联系，**应当以自然流畅的现代数学语言自然融入题干叙述中**（例如：“在上一题中我们观察到……，为进一步刻画其内在规律，考虑……”或“为了从几何运动过渡到代数表示，我们需要……”）。
-- **严禁使用中括号机械括起标签**：严禁出现 `【研究目的：...】`、`【与前题联系：...】` 等生硬死板的标签。
-- **衔接判定**：题干背景明确且不需要跨题说明时，直接陈述问题；否则把必要衔接写入题干。不得添加没有信息作用的铺垫。
-
-### 知识点陈列与列表规范
-同一层级的多条知识点、性质、判定条件或推论陈列时，必须使用 LaTeX `enumerate` 环境分条（`\item`）展开，保持语法与格式平行；只有无序且极短的要领标签才使用 `itemize`。严禁写成散落断句、无标号段落堆砌。包含多问证明的题目内仍使用嵌套 `enumerate`，且每问后必须紧跟显式 `\ansspace{...}`。
-
----
-
-## 三、 工程化模块排版架构与 self 独立目录规范
-
-### 0. 目录存放与冲突处理规范（self 独立目录）
-- **独立目录输出**：所有新创作的文件必须置于单独的 `self/` 文件夹中（例如输入材料同级目录下的 `<work_dir>/self/`）。
-- **新建与冲突询问**：
-  - 若目标工作目录下不存在 `self` 文件夹，则自动新建；
-  - 若已存在同名 `self` 文件夹（且非空），或生成的目标文件存在重名冲突，**严禁静默覆盖**，必须使用 `ask_question` 工具主动向用户确认（提供覆盖现有文件、备份重命名或指定新目录等选项），经用户确认后再执行写入。
-
-为支持团队协同与 AI 多智能体并发，严禁使用混乱臃肿的单文件模式，采用解耦的**工程化分层架构**：
-
-```
-work_dir/
-└── self/               # [核心输出目录] 总是将新创作的文件置于单独的 self 文件夹中（没有则新建，重名则询问）
-    ├── student.tex     # [层1] 学生版编译入口 (\input{main.tex})
-    ├── teacher.tex     # [层1] 教师版编译入口 (\def\TeacherVersion{}\input{main.tex})
-    ├── main.tex        # [层2] 主骨架：\input header.tex，\begin{document}，双栏开始，\input sec*/footer
-    ├── header.tex      # [层2] 纯导言区：版面参数、宏包、双版本环境、microknowledge/knowledgebox 宏定义
-    │                   #        （教师版版面在此覆盖为 A4 竖版单栏；学生版沿用 config.yaml 大8开横版双栏）
-    ├── footer.tex      # [层2] 收尾：双栏结束、LastPage 锚点、\end{document}
-    ├── config.yaml     # [层2] 参数文件：纸张/边距/标题/页眉文案（改课程只改此文件）
-    ├── config-class.tex# [自动生成] 文档类选项（scripts/gen_config.py 生成）
-    ├── config.tex      # [自动生成] geometry 与文本参数宏（同上生成，勿手改）
-    ├── sec0.tex        # [层3] 开篇引例切片（经开篇职责判定后由开篇专员子 Agent 撰写，叙述为主、少用问题；首节已承担开篇功能时可省略或只留极短背景）
-    ├── sec1.tex        # [层3] 第 1 小节纯切片内容 (仅包含 \section*{} 与题目环境)
-    ├── sec2.tex        # [层3] 第 2 小节纯切片内容
-    ├── .pd/            # [内部] 运行契约与交付证据：run.json、candidates/、review/、acceptance/
-    └── ...
-```
-
-### 1. 参数化配置
-- 换课程/学期只需复制并修改 `config.yaml`，然后运行 `python scripts/gen_config.py --project <项目目录>` 重新生成 `config-class.tex` 与 `config.tex`，模板本体零改动（build.py 检测到 config.yaml 更新时也会自动重新生成）。
-- Skill 自带默认生成结果，未运行脚本也可直接编译。
-
-### 2. 入口文件规范
-- **`student.tex`**：
-  ```latex
-  % -*- coding: utf-8 -*-
-  \input{main.tex}
-  ```
-- **`teacher.tex`**：
-  ```latex
-  % -*- coding: utf-8 -*-
-  \def\TeacherVersion{}
-  \input{main.tex}
-  ```
-
-### 3. 核心环境与宏命令
-- **`\qtype{题型}`**：题干开头的题型标签（如 `\qtype{进入题}`）。教师版显示【xx题】字样便于把握设计意图；学生版自动隐藏，不向学生明示题型。
-- **`\practicemode{guided|unprompted}`**：题目状态标签，紧跟 `\item` 书写；台账中必须逐题记录。源文件省略该命令时按 guided 处理。`\practicemode{unprompted}` 表示无提示纯习题，教师版显示【无提示练习】字样，学生版隐藏；取值非法时发出 `Package problem-driven Warning`。unprompted 题的学生版必须同时隐藏 `\qtype`、提示行、microknowledge 引导及任何“先做某步/观察某式”的引导，只保留题干、必要已知条件和 `\ansspace`；教师版仍保留完整解答、唯一推荐讲法、易错点与评分点。
-- **`\begin{probchain} ... \end{probchain}`**：题链编号环境，跨小节自动连续编号（内置计数器，无需 series/resume 手工对位）。多问小题（含所有证明题）在其内使用嵌套 `enumerate` 排布各小问，**每一问各自紧跟 `\ansspace{...}` 留出相应书写空间**。
-- **稳定题身份 `% qid: <id>`**：每个 probchain 一级 `\item` 前必须有 `% qid: <稳定题ID>` 注释，全章唯一；显示题号是渲染结果，跨节关联、台账与验收记录一律使用 qid。每道题恰好配备一个 `solution` 与一个 `teacherNote`。切片严禁 `\setcounter{pdprob}` 与 `\def/\ifdefined\TeacherVersion`：题号由装配顺序渲染，双版差异只能由本模板宏产生（check_numbering.py 硬检查）。
-- **`\fillin[参考答案]{预留宽度}`**：学生版渲染为下划线留白；教师版自动在下划线上方居中填入醒目的蓝色加粗参考答案。缺少宽度或答案时发出 `Package problem-driven Warning`。
-- **`\ansspace{高度}`**：学生版产生垂直书写空白；教师版自动压缩至约 0.4ex，消除页面冗余空行。
-- **`\begin{solution}[前缀] ... \end{solution}`**：学生版由 `comment` 宏包彻底剥离（剥离数量计入编译日志 SUMMARY）；教师版渲染为带蓝色标题与缩进的完整解答。
-- **`\begin{teacherNote}[批注标题] ... \end{teacherNote}`**：教师版专属的教学策略、常见错误预警与评分重点。
-- **`\begin{microknowledge}[标题] ... \end{microknowledge}`**：带框线的小型定义卡片，两版均显示，限制在 2~3 行内。用于前置定义、记号与运算规则。
-- **`\begin{knowledgebox}[标题] ... \end{knowledgebox}`**：带灰色虚线框的章节末结论框，两版均显示，仅用于梳理本节由问题链自主探究推出的核心结论（前置知识与定义须用实线 `microknowledge` 卡片）。
-- **编译摘要**：文档结束时自动输出 `[problem-driven] SUMMARY solution=N, teacherNote=N, fillin=N` 到日志，供 build.py 核对两版环境数量是否一致。
-
-### 4. 标题与小节命名规范
-- **标题（`config.yaml` 的 `main_title`，经 `\pdMainTitle` 渲染）**：默认值为「学案」。具体课程标题（如「群论学案」）必须使用 `ask_question` 工具询问用户确认后填写，严禁自行杜撰。
-- **小节标题（`\section*`）**：统一以大写罗马数字加空格开头（`I `、`II `、`III `……），形如 `\section*{I 小节标题}`；编号按装配顺序连续递增（含开篇切片 sec0，若存在则从 `I` 起编），严禁使用中文数字（一、二、三）、顿号或其他编号样式。
-
----
-
-## 四、 AI 多智能体并发处理规范 (Multi-Agent Pipeline)
-
-当教材材料较长（如整章教材）时，按以下固定流程切片；材料较短时也执行相同顺序。
-
-### 步骤 0：创建或核验 self 独立输出目录
-检查目标目录下是否存在 `self` 文件夹：
-- 若无 `self` 文件夹，自动新建 `<target_dir>/self`；
-- 若已有 `self` 文件夹（且非空），或目标输出文件发生重名冲突，**严禁静默覆盖**，必须调用 `ask_question` 工具向用户询问并确认处理方案（如覆盖、另存或备份），征得用户同意后再继续；
-- 随后将脚手架模板（`main.tex`、`header.tex`、`footer.tex`、`config.yaml`、`student.tex`、`teacher.tex` 等）及各小节切片 `sec*.tex` 统一生成置于该 `self/` 目录下。
-
-### 步骤 1：全书章节锚点定位与知识图谱
-使用 `grep_search` 或文件快照提取各小节的起始行号（例如识别 `## § 2.1`、`## § 2.2` 等）。
-
-主 Agent 必须先建立原文骨架表、依赖表和覆盖表，并把它们作为子 Agent 的只读上下文。不能直接把原文按文件或页面切片后并行改写。
-
-### 步骤 2：冻结材料需求并派发研究核验 Agent（默认启用）
-- **生成 `research-brief.md`**：主 Agent 从 `coverage-map.md` 与 `dependency-map.md` 冻结材料需求，每行一个需求，字段固定为：`需求ID | 知识点ID/原文节点 | 材料类型(entry/counterexample/history) | 要改变的判断或暴露的边界 | 学生已知前置 | 允许的新对象/记号 | 计划落点 | 必须避免的误解 | 材料来源类型`。每个需求只能有一个主要教学功能，功能说明须落到可观察的前后差异（学生原先的判断、触发修正的数据、修正后判断的使用位置）；无明确教学需求者标记 `NO-NEED`，不新增材料。`材料来源类型` 三选一：`REUSE-ORIGINAL`（复用原文，保留锚点与复核结果）、`SELF-CONTAINED`（自构数学例子，凭完整定义与计算核验并标为自构）、`EXTERNAL`（历史/经验事实，需外部文献或可靠本地摘录）。长度预算（卡片数、字数、题目上限）先于检索数量写入本文件，预算表与卡片字段见 `prompts/research_prompt.md`。
-- **派发研究 Agent（flash）**：研究 Agent 只接收 `research-brief.md`、相关原文片段与三张映射表只读摘录，按 `prompts/research_prompt.md` 输出 `research-cards.md` 与 `research-gaps.md`；每个需求最多 2 张候选卡片，无可靠来源或无法复算时输出 `REJECTED`，不得用常识补写来源。研究 Agent 不写 `sec*.tex`、不改变章节顺序、不自行决定材料是否进入正文。
-- **主 Agent 两道闸门核验**：来源闸门（核对 URL/书目、人名、年代、定理表述与引用范围，不可定位原文者标 `unverified`，不得进入正文）与数学/教学闸门（独立重算，检查定义域、量词、边界值、对象类型与前置闭合）。通过者标 `approved` 并把卡片 ID、落点、功能与核验结论登记到 `coverage-map.md`。
-- **生成材料包**：主 Agent 为每个切片生成 `material-pack-secN.md`，只含已批准卡片、使用顺序、不得泄露的结论、最小前置定义与桥接句要求；不得把整份研究文件原样塞入切片 prompt。
-- **跳过条件**：已有可靠材料且 `coverage-map.md` 的引例/反例功能均已覆盖时可跳过研究 Agent，跳过理由记入 `research-brief.md`。**跳过检索不等于跳过批准与回溯**：复用或自构的材料仍须登记来源类型、保留可定位锚点与复核结果，并由主 Agent 生成批准材料包。
-- **状态词表（字段归属与取值，全包统一）**：
-
-  | 字段 | 允许取值 | 谁能设置 / 转换 |
-  |---|---|---|
-  | 需求状态（research-brief 行） | `NO-NEED` / `ACCEPT` / `REJECT` / `NEED-PREREQUISITE` | 主 Agent 冻结需求；研究 Agent 只给出后三者之一作为初核建议 |
-  | 卡片状态（research-cards） | 候选 / `REJECTED` / `unverified` / `approved` / `rejected` | 研究 Agent 只产出候选或 `REJECTED`；`approved/rejected/unverified` 只能由主 Agent 两道闸门转换；研究侧的 `ACCEPT` 不等于 `approved` |
-  | 验收结论 | `PASS` / `REVISE` / `NEEDS_EVIDENCE` | 独立验收 Agent 出具并绑定所审版本；主 Agent 汇总 |
-  | 任务运行状态 | `planned/ready/running/produced/checked/accepted/blocked/failed/stale` | `pdstate.py` 与主 Agent 维护（见步骤 3.5） |
-
-### 步骤 3：派发切片任务（强制：一节一子 Agent；开篇专员经职责判定后派遣）
-- **必须为每个 Section（小节）派遣一个独立的子 Agent**（强制要求，严禁主 Agent 集中单体生成所有小节，亦严禁合并多个小节交由同一个子 Agent 处理）。
-- **开篇职责判定与开篇子 Agent**：派发切片前先判定开篇职责归属。若原材料已有完整的章首引例，或第一节本身已承担开篇功能，允许合并教学职责——开篇与首节分工使用该例，或让 `sec0` 只保留极短的必要背景；不得仅因存在 `sec0` 机制就强制增加一段重复内容。判定为需要独立开篇时，额外派遣一个专属子 Agent（“开篇引例与历史引入专员”，同样使用 `flash` 模型）撰写 `sec0.tex`：**以叙述为主，较少使用问题**——以 discussion/exposition 段落为主体，至多穿插少量进入题，不得改造成完整题链；每个引例、反例与历史事实都必须可回溯到核实记录，严禁自行编造来源或史实；原文提到某人某事，不授权补出更具体的年代、因果或归属。
-- **入口约定先行**：需要独立开篇时，开篇专员先提交一份简短的“开篇—首节入口约定”草案，主 Agent 核定后冻结（记录于 `material-pack-sec0.md` 或章节总览，不另造台账）：学生此时已知什么、能执行什么动作；开篇建立哪个观察、留下哪个未解问题；各结论的信息首次揭示位置；首节如何使用开篇产物、重访同例时增加什么新动作。开篇专员据冻结版本写作，首节切片共用同一份约定；开篇与首节完成后联合提交独立教学验收（步骤 4.5）。字段详见 `prompts/subagent_prompt.md` 开篇模板。
-- 先完成三张基石映射表（`source-map.md`、`dependency-map.md`、`coverage-map.md`）与步骤 2 的研究核验，再按小节逐一派发切片任务。每个小节切片必须由专属的子 Agent 独立撰写对应的 `sec*.tex`。切片 Agent 固定使用 `flash` 模型以控制成本；主 Agent 与切片 Agent 使用相同的输入约束、输出格式和验收标准。切片 Agent 只能使用对应 `material-pack-secN.md` 中状态为 `approved` 的卡片；材料包不足时返回缺口清单和所需字段，由主 Agent 补齐后重新派发，切片执行者不得自行检索或编造来源。
-- **派发参数配置示例**（字段名由宿主适配层映射到实际调用接口；逻辑任务固定 `Model: "flash"`，不得自动回退到更贵模型；并发数、超时与有限重试属部署配置）：
-  ```json
-  {
-    "Subagents": [
-      {
-        "TypeName": "self",
-        "Role": "第1节切片制作专员",
-        "Model": "flash",
-        "Prompt": "<依照 prompts/subagent_prompt.md 填入>"
-      }
-    ]
-  }
-  ```
-- **派发前确定性检查**（不花一次 flash 调用来发现输入未就绪）：原文范围可读、材料包已批准或明确为空包、占位符全部替换、跨节接口已冻结；任一不满足，先修任务包再派发。
-- **最小上下文**：派发时只带本节相关规则摘录、该节映射表摘录、批准材料包与跨节接口，不附整份工作流与课堂操作指南。
-- **Subagent Prompt 黄金模板**：集中维护于 `prompts/subagent_prompt.md`，复制后替换 `{{INPUT_FILE}}`、`{{START_LINE}}`、`{{END_LINE}}`、`{{SECTION_TITLE}}`、`{{OUTPUT_FILE}}` 等占位符即可，避免硬编码路径散落各处。开篇子 Agent 使用同一文件中的“开篇引例子 Agent 模板”，候选输出固定为 `self/.pd/candidates/sec0/sec0.tex`（校验后提升为 `self/sec0.tex`）。研究核验 Agent 模板见 `prompts/research_prompt.md`。
-
-### 步骤 3.5：运行契约与候选提交（scripts/pdstate.py）
-
-每次运行由主 Agent 执行 `python scripts/pdstate.py <project> init` 建立 `.pd/run.json`：`schema_version`、`run_id`、切片顺序、源文件/模板/配置摘要（SHA256）与任务表。
-
-- **任务标识**：`run_id / task_id（=section_id）/ attempt_id / input_digest`（任务输入摘要）。
-- **状态机**：`planned → ready → running → produced → checked → accepted`，另有 `blocked / failed / stale`；这些是运行状态，不是教学质量等级。
-- **候选提交**：子 Agent 把结果写入自己独占的 `.pd/candidates/<task_id>/secN.tex`；主 Agent 用 `pdstate.py submit <task_id>` 校验输入版本仍有效、结果完整且无越界改动后，原子提升为正式切片。同一逻辑小节只有一个当前有效结果，迟到结果不得覆盖新版本。
-- **恢复**：同一运行恢复时读取 `run.json`，只重跑未完成或已失效（stale）任务；输入摘要变化的旧结果进入 `stale`，不得继续作为当前版本的通过证据。
-- **单写者**：批准材料包、`main.tex` 骨架、全局台账与 `run.json` 由主 Agent 单写者维护。
-- **成本记录**：宿主提供 usage 时用 `pdstate.py record` 记录每任务输入/输出 token、重试次数与实际模型路由；无法取得价格时只记录调用量与 token，不编造节省百分比。
-
-### 步骤 4：装配
-切片执行者只依据已确定的节点表起草学习单元，不得自行决定跨单元的概念顺序、补充高级概念或删除原文结论。各切片完成后，逐项通过顺序、依赖和覆盖审校，再由 `main.tex` 按文件顺序装配（先 `\input{sec0.tex}` 开篇切片，再依次装配各 `sec*.tex`）；装配不替代内容审校。
-
-### 步骤 4.5：独立教学验收（默认启用）
-装配前后各有一次验收触发点，验收规范与提示词见 `prompts/acceptance_prompt.md`：
-
-- **调度屏障**：原型验收通过前，对开篇/首节入口有依赖的小节不进入完整写作（可准备任务包）；原型通过后按任务依赖并行派发，局部缺口只阻塞受影响任务。跨节接口（输入概念、学生已可见结论、输出结论、首次揭示位置）变更后，按依赖图标记受影响切片与验收记录失效，无需全文重写。
-- **原型验收**：开篇切片与首个实质任务（首节原型）完成后，先运行一次独立教学验收，避免整章完成后才发现入口职责错误；
-- **装配后验收**：全部切片装配后，检查跨节接口、答案首次揭示位置与实例重访带来的新问题；未改变的内容不必全文重审。
-
-验收 Agent 必须未参与本次规划与写作、使用新上下文（Model 固定 `flash`），按两阶段输入边界执行（先看学生可见内容，再核对教学与来源）。阶段一输入必须来自 `python scripts/make_review_pack.py <project>` 生成的 `.pd/review/` 学生审读包（按页学生可见文本 + 版本摘要）；`pdftotext` 阅读顺序存疑时直接审读渲染页，不依据可能错序的文本补猜。验收粒度按学习依赖划分连贯片段，不实行“一文件一验收者”。结论三选一：`PASS` / `REVISE` / `NEEDS_EVIDENCE`；`REVISE` 按缺陷归属退回写作或规划，`NEEDS_EVIDENCE` 补证据或删除无法核验的非必要材料。验收结论绑定所审文件版本（内容哈希或版本标识），记录于 `.pd/acceptance/<scope>.md`；此后改变题干、定义位置、答案揭示或跨节顺序时，受影响部分重新进入验收，旧 PASS 自动失效。默认返修预算为首次验收加一次针对性复验；同类问题仍存在时先检查入口设计、前置假设或冲突规则。允许先制作可审读草稿再验收，最终装配和交付前完成内容与技术两类验收即可。
-
-### 步骤 5：材料回溯、编译、诊断与版本快照
-运行构建脚本前，主 Agent 对每个已写入材料执行回溯检查：正文中的材料 → 卡片 ID → `research-brief.md` 需求 → `coverage-map.md` 功能记录 → 来源摘录；任一环节断链即退回切片。**编译通过不代表材料验收通过；脚本（编号、泄露扫描、计数核对）通过也不代表教学验收通过**——确定性检查与步骤 4.5 的学生视角审读并列执行、互不替代，不得把来源表填满视为内容真实，也不得把关键词扫描视为教学合格。`compare_versions.py` 报告“答案疑似项待复核”时须人工复核后再交付。
-随后按以下顺序运行构建脚本（所有脚本以显式项目路径调用，以下为项目根目录视角）：
 ```bash
-python scripts/check_numbering.py self/          # 装配完整性 + 题链结构 + 逐题身份与答案关联
-python scripts/build.py self/                    # XeLaTeX 双遍编译 + 日志告警验收 + 双版 SUMMARY 核对
-python scripts/compare_versions.py self/         # 学生版泄露扫描（含答案源级检查）+ 双版诊断
-python scripts/deliver.py self/                  # 交付汇总门禁（见步骤 5.5）
+# 0. 前置配置（标题与对话层开关；用户已提供则直接复用不弹窗）
+python scripts/prompt_dialog.py --project self/
+# 1. 脚手架与三张映射表（source-map / dependency-map / coverage-map），协议见 references/production.md §二
+# 2. 材料需求与核验（可选跳过），生成材料包与机器索引
+python scripts/evidence.py materials-index self/ --out self/.pd/materials.json
+# 3. 运行契约：init → 逐节 start → 写作者提交 → submit → mark checked
+python scripts/pdstate.py self/ init
+python scripts/pdstate.py self/ start sec1 --input <本节材料> --prompt-file <提示词>
+python scripts/pdstate.py self/ submit sec1 && python scripts/pdstate.py self/ mark sec1 checked
+# 4. 装配后的技术检查与构建（均支持 --json）
+python scripts/check_numbering.py self/ --json self/.pd/reports/check_numbering.json
+python scripts/check_dialogue.py  self/ --json self/.pd/reports/check_dialogue.json
+python scripts/build.py           self/ --json self/.pd/reports/build.json
+python scripts/compare_versions.py self/ --json self/.pd/reports/compare.json
+# 5. 学生审读包 → 独立教学验收（prompts/acceptance_prompt.md）→ 交付门禁
+python scripts/make_review_pack.py self/
+python scripts/deliver.py self/            # 或证据齐备后 --skip-checks
+# 6. 回归：模板或脚本改动后
+python scripts/test_templates.py && python scripts/test_runtime.py
 ```
-**运行环境要求**（集中在首次运行前预检，`python scripts/build.py self/ --check-env`）：Python 3.10+、XeLaTeX（TeX Live / MiKTeX）、中文字体、`exam-zh-choices` 宏包、poppler 的 `pdftotext`。
 
-注意：`build.py` 每遍编译均检查返回码并设超时（`--timeout`，默认 300 秒；超时属执行故障可重试，确定性 TeX 错误不重试）；`config.yaml` 更新后自动重新生成配置。出现未定义引用、严重 Overfull（默认 >10pt）、mdframed bad break、multicol 栏数被自动改变、`Package problem-driven Warning` 或双版 SUMMARY 计数不一致时判为失败；编译返回码为 0 不等于验收通过。学生版 Underfull 留白默认只诊断不判失败，
-阈值可用 `--max-overfull-pt`、`--max-underfull-teacher` 等选项调整。`compare_versions.py` 在证据缺失（缺日志 SUMMARY）时返回 2（无法完成检查），不得以“证据缺失”冒充“检查通过”；独立诊断用途加 `--diagnostic`。三个检查脚本均支持 `--json` 输出结构化结果（status/scope/input_digest/issues/evidence/tool_version），供交付汇总使用。
+运行环境预检：`python scripts/build.py self/ --check-env`（Python 3.10+、XeLaTeX、中文字体、`exam-zh-choices`、poppler `pdftotext`）。
 
-### 步骤 5.5：交付汇总门禁（scripts/deliver.py）
+## 五、 教师端课堂实施（仅课堂任务读取）
 
-技术检查与教学验收互不替代；交付前由 `deliver.py` 汇总全部证据，**全部满足**才通过：
-
-- 计划切片齐全，正式装配无缺失与重复（check_numbering.py 通过）；
-- 当前输入对应的双版构建与技术检查完成（读取各 `--json` 报告）；
-- 当前版本所需范围的独立教学验收为 PASS，且验收记录（`.pd/acceptance/<scope>.md`）绑定当前内容摘要——修改受审内容后旧 PASS 自动失效；
-- 所有阻断问题已有“修复并复验”或“有依据撤销”记录；
-- 疑似答案项已有人工复核记录（`.pd/review-notes.md`）；
-- 材料批准链完整（正文 → 卡片 ID → 需求 → 登记 → 来源摘录无断链）。
-
-通过后生成本地发布目录（双版 PDF + manifest.json），不含自动向外部平台上传。诊断措辞统一为“未发现已检查范围内的泄露标记”；不得由文件存在或退出码 0 推断整个工作流已完成。
-
-### 步骤 6：回归验证
-模板、宏定义或检查脚本改动后，运行 `python scripts/test_templates.py`：基于当前模板构造最小工程，覆盖教师版单栏/学生双栏切换、版本剥离、自动续号、逐题答案关联与历史反例（研究报告 §8 的 V1–V10）。`examples/eg.tex` 系列与 `scripts/test_examples.sh` 仅作旧示例参考，不再充当模板回归证据。
-
----
-
-## 五、 质量验收清单 (Checklist)
-
-### 逻辑验收（先于排版验收）
-
-- [ ] 每个定义、记号、例题、命题和证明都能回溯到原文锚点，且学案顺序没有无理由前置。
-- [ ] 每道题的对象、运算、记号、维数条件和所用结论均已提供或明确属于已知前置。
-- [ ] 每个学习单元都存在“材料/定义—示例—问题—反馈—下一节点”闭环。
-- [ ] 原文核心论证链没有被形式化题、迁移题或反例题替代；证明步骤都能由前面已建立的事实推出。
-- [ ] 未为了满足固定题型而添加与原文主线无关的内容。
-- [ ] **开篇职责与入口约定**：是否先判定开篇职责归属（原材料已有完整章首引例或首节已承担开篇功能时，合并职责或只保留极短必要背景，未强制重复一段内容）？独立开篇时是否先冻结“开篇—首节入口约定”（学生能做什么、建立哪个观察、留下哪个未解问题、各结论的信息首次揭示位置、首节接续的新动作），开篇与首节共用同一约定？该切片是否以叙述为主、较少使用问题，且全部素材可回溯到核实记录？
-- [ ] **揭示顺序**：原材料用 `\pause` 等手段延迟揭示的节点，静态输出是否保留先判断、后反馈的次序？首个实质任务要学生自己得出的答案是否未被开篇或背景段提前公布？
-- [ ] `overview-guide.md` 的主线、依赖和转折与实际题目顺序一致，而不是生成后的事后解释。
-- [ ] 学生仅凭当前材料能完成抽样题；卡住的位置必须补材料或拆题，仍无法闭合的题目删除。
-
-- [ ] **问题驱动性**：是否做到了“先有探究体验，再给形式定义”？
-- [ ] **题链整体性**：各题目是否杜绝孤立罗列？题间过渡是否只在产生新联系时书写（自然融入题干），而不是按“每题 1~2 句”机械补写？
-- [ ] **unprompted 独立性**：每个 unprompted 题均可凭此前材料独立作答，且 `coverage-map.md` 台账指向一个已完成的示范题号或知识点 ID；未把同一知识点的整组题全部设为 unprompted。
-- [ ] **unprompted 双版一致性**：unprompted 题的学生版不出现提示性标签、提示词或教师备注；教师版题目正文与学生版逐题一致且有解答。（脚本只能检查 `\practicemode` 取值与 unprompted 题块内的提示标记，题干自足性与台账指向须人工核验。）
-- [ ] **知识自足与前置定义**：是否严格确保题目中所用知识是已知的？遇到新对象、新运算或新记号时，是否已在题干前/中补充了必要的定义与讲解，杜绝了未经定义便直接出题？
-- [ ] **文风严谨度**：全篇文风是否简明、严肃、克制？是否杜绝口语化、网络梗或夸张修辞？是否避免引入过多无关的额外复杂概念？
-- [ ] **列表规范性**：多条知识点、性质陈列是否规范使用了 `enumerate` 环境分条展示？
-- [ ] **命名规范**：`main_title` 已经用户确认（默认「学案」，未自行杜撰）；各小节 `\section*` 标题均以大写罗马数字（I、II、III……）开头且按装配顺序连续递增。
-- [ ] **题号连续性**：学生版与教师版各题编号完全一致，全章无重复断号。
-- [ ] **逐题身份与答案关联**：每道题有全章唯一 qid；每题恰好一个 solution 与一个 teacherNote；切片无计数器重置或版本开关宏（check_numbering.py 硬检查）。
-- [ ] **节末结论框与证明策略**：每节末有 knowledgebox 总结本节结论；每道证明题前有 proofstrategy 策略段（不泄露结论）。
-- [ ] **留白与版面**：学生版书写留白充足；教师版紧凑且无多余大片空白。
-- [ ] **版本干净度**：学生版 PDF 中未泄露教师专属标记（【解】【证明】、参考解答、教学要点、评分等，由剥离机制与 compare_versions.py 检查）与教师备注，且不显示题型标签【xx题】。题干中合法的“试证明”等教学用语不属于泄露，验收时结合任务判断，不误判违规。
-- [ ] **子 Agent 边界校验**：是否严格为每个 section 独立派遣了一个专属子 Agent（一节一子 Agent，严禁主 Agent 代写或合并小节）？开篇是否先经职责判定再决定是否派遣开篇专员？是否按默认配置派遣了研究核验 Agent（或已在 `research-brief.md` 记录跳过理由与批准路径）？flash 子 Agent 是否只使用主 Agent 冻结的主线、依赖表、覆盖表和批准材料包，且没有自行改变章节顺序、自行检索或添加无来源材料？
-- [ ] **独立教学验收**：是否由未参与规划写作、使用新上下文的验收 Agent 按两阶段边界（先学生可见内容，后教学与来源核对）完成验收？验收粒度是否按学习依赖的连贯片段（开篇至少与首个实质任务一起读）？结论是否为 `PASS` / `REVISE` / `NEEDS_EVIDENCE` 之一且绑定所审版本？每条实质问题是否均有“修复并核验”或“给出依据后撤销”的结果？脚本通过未被当作教学验收通过。
-- [ ] **材料回溯**：正文中每个引例/反例/历史材料可沿“正文 → 卡片 ID → `research-brief.md` 需求 → `coverage-map.md` 登记 → 来源摘录”完整回溯，无断链；编译通过不视为材料验收通过。
-- [ ] **来源闸门**：每个进入正文的材料均按来源类型留有可复核证据：`REUSE-ORIGINAL` 有原文锚点与复核结果，`SELF-CONTAINED` 有完整定义与复算过程并明确标为自构，`EXTERNAL` 有可复核的 URL/书目与摘录或页码；历史事实不超出原文授权的具体程度（不补出原文没有的年代、因果或归属），不只依赖搜索摘要；`unverified` 材料未进入正文。
-- [ ] **数学复算**：主 Agent 已独立重算每个例子与反例（定义域、量词、边界值、对象类型、前置闭合）；反例只改变一个可识别条件并写明保留/破坏的性质。
-- [ ] **功能唯一**：每张材料卡片承担且仅承担一个主要教学功能（改变判断、暴露边界或支撑证明中的至少一项），功能说明落到可观察的前后差异（学生原先的判断、触发修正的数据、修正后判断的使用位置），已登记入覆盖表；重复或装饰性材料已删除。
-- [ ] **长度预算**：各落点材料在 `research-brief.md` 的卡片数、字数与题目上限内（sec0 主口径为核心叙述约 450 个汉字、不含公式字母，页数只作装配粗检；至多 1 引例，需要暴露旧方法边界时再加 1 边界例）；材料后紧跟可完成的数学动作；未把后续小节内容提前讲完。
-- [ ] **编译零告警**：通过 XeLaTeX 连续两次编译，引用与页脚总页码 (`\pageref{LastPage}`) 均正确呈现；`build.py` 验收通过（无未定义引用、无严重 Overfull、无 mdframed bad break、双版 SUMMARY 一致）。
-
----
-
-## 六、 资源与模板索引
-
-本 Skill 附带的标准模板与参考实现位于本 Skill 目录中：
-- 基础骨架模板：`templates/main.tex`、`templates/header.tex`、`templates/footer.tex`
-- 参数化配置：`templates/config.yaml`（生成器：`scripts/gen_config.py`）
-- 学生版入口：`templates/student.tex`
-- 教师版入口：`templates/teacher.tex`
-- 小节切片示例：`templates/sec_template.tex`
-- 子 Agent 提示词模板：`prompts/subagent_prompt.md`
-- 研究核验 Agent 提示词模板：`prompts/research_prompt.md`（research-brief 需求字段、材料来源类型、材料卡片字段、状态与拒收协议、两道闸门与长度预算）
-- 独立教学验收 Agent 提示词模板：`prompts/acceptance_prompt.md`（两阶段输入边界、PASS/REVISE/NEEDS_EVIDENCE 结论协议、版本责任与返修预算）
-- 课堂工具模板：`templates/classroom-plan.md`（课堂计划卡）、`templates/error-log.md`（课后错误记录）
-- 工具脚本：`scripts/build.py`（编译+日志告警验收+双版 SUMMARY 核对）、`scripts/check_numbering.py`（装配完整性+栈式题链结构+逐题身份与答案关联+practice_mode 轻量检查）、`scripts/compare_versions.py`（双版 PDF 泄露扫描+源级计数核对）、`scripts/gen_config.py`（config.yaml → config*.tex，须显式 `--project`）、`scripts/pdstate.py`（运行契约与候选提交）、`scripts/make_review_pack.py`（学生审读包）、`scripts/deliver.py`（交付汇总门禁）、`scripts/test_templates.py`（基于当前模板的回归测试）
-- 旧示例参考：`scripts/test_examples.sh`、`examples/eg.tex` 系列（不覆盖当前模板，不作回归证据）
-- 详细方法论与参考：`examples/workflow.md`（含 Mermaid 流水线流程图）、`examples/8K.tex`、`examples/eg.tex`
-
-## 七、教师端课堂实施工具
-
-生成讲义后，教师端使用 `teacher-guide.md` 了解工具职责与提示协议，使用 `flow.md` 执行课前—课中—课后闭环。备课时复制 `templates/classroom-plan.md`，课后用 `templates/error-log.md` 记录错误与卡点（含 unprompted 题是否应恢复为 guided）。课堂计划必须为每个题链回合写出时间、组织方式、可见证据和进入条件。上述文件与现有 `scripts/` 配套，形成从讲义生成到课堂迭代的完整工作流。
-
-课堂流程采用顺序建构原则：严格按讲义的概念依赖推进，只在每段内调整讲解深度。新增 `templates/overview-guide.md` 作为教师的章节总览与高观点讲解文档，用于标注主线、依赖与关键转折。
+生成讲义后，教师端使用 `teacher-guide.md` 了解工具职责与提示协议，使用 `flow.md` 执行课前—课中—课后闭环。备课时复制 `templates/classroom-plan.md`，课后用 `templates/error-log.md` 记录错误与卡点。`templates/overview-guide.md` 作为章节总览与高观点讲解文档；启用对话层时在其中冻结「对话蓝图」。**这两个文件只在课堂实施任务中读取，讲义生成流程不加载。**
 
 ## 更新约定（变更历史，不构成第二套生效规则）
 
 - 2026-09：引入 knowledgebox 节末结论框（每节必须）、证明题前 proofstrategy 策略段（必须）、probchain 统一编号、开篇—首节入口约定、揭示顺序表、研究核验两道闸门与独立教学验收。
 - 2026-09：新增标题与小节命名规范——`main_title` 默认「学案」，具体标题须询问用户确认；`\section*` 标题统一以大写罗马数字（I、II、III……）开头。
 - 2026-09（工程修整，依据工程架构研究报告）：修复教师版单栏声明未实现、第二遍编译返回码、装配缺失/重复误判、逐题答案关联、fillin 解析器、可见性扫描与证据缺失谎报；引入 qid 稳定题身份、`.pd/` 运行契约（pdstate.py）、学生审读包（make_review_pack.py）与交付汇总门禁（deliver.py）；回归测试改为 test_templates.py；配置生成统一显式 `--project`。
+- 2026-09（对话层改造，依据 skill4 方案）：新增可选对话层——`sectiondialogue`/`exampledialogue` 环境与 `\speaker`、`\dlgteacher` 宏（单源双输出，学生版默认隐藏教师专属台词）；`config.yaml` 增加 `dialogue_*` 开关（含 `sec0,sec1` 列表形式的分节逐步启用）；`source-map.md` 新增 `dialogue-hook` 内容类型；新增 `scripts/check_dialogue.py` 结构与泄露硬检查并纳入 deliver 门禁；`templates/overview-guide.md` 增加对话蓝图、`classroom-plan.md` 增加对话回合表、`error-log.md` 增加 dialogue-answer-leak / orphan / dependency-gap / redundancy 错误类型；`prompts/subagent_prompt.md` 增加 dialogue-enhancement 固定字段与四阶段产物要求，`acceptance_prompt.md` 增加隐性提示/孤立对白/依赖缺口验收项；回归测试覆盖“无对话旧 section”与“含两种对话块 section”混合装配。
+- 2026-09（启动前置向导）：新增 `scripts/prompt_dialog.py` 与 `prompt_dialog.bat`，在启动 skill 前以现代化 UI 对话框询问并确认自学案主标题与课堂对话体开关，自动更新 `config.yaml` 并重新编译 LaTeX 参数宏，支持无缝 CLI 降级。
+- 2026-09（对话层印刷友好与角色名规范化）：`sectiondialogue`/`exampledialogue` 配色由蓝/橙改为黑白灰（实线框/虚线框区分），教师版 `\speaker` 角色名与 `\dlgteacher` 不再使用蓝/绿色；对话角色名统一为希腊字母——教师固定 `$\Psi$`，学生固定 `$\alpha$`、`$\beta$`、`$\gamma$` 等，严禁 Teacher/Alpha 等英文名；`prompt_dialog.bat` 收入 `scripts/` 并改为按自身位置定位脚本的可复用启动器，删除工程根目录的章节特异转发 wrapper。
+- 2026-09（证据与运行契约强化 F05/F06）：`scripts/evidence.py` 统一受审输入清单与内容摘要（装配顺序参与摘要、mtime 不参与、动态路径显式记 missing/unresolved），六个检查/交付脚本报告统一 schema_version 2 并绑定 input_digest 与 pdf_sha256，任何受审输入变化均使旧教学 PASS 失效（保守方案）；`pdstate.py` 引入 attempt 机制——派发前 `start` 创建独占 `.pd/candidates/<task>/attempt-NNNN/`（冻结 task.json 与输入快照），写作者提交 secN.tex + result.json（复述 run_id/task_id/attempt_id/input_digest 与输出哈希），submit 五道核对通过才原子提升，旧候选与迟到结果不得晋升。
+- 2026-09（交付证据结构化 F07）：新增 `.pd/materials.json` 批准卡片机器索引（`evidence.py materials-index` 由材料包生成，状态精确相等判断），卡片注释解析兼容独立 `% card:` 与旧版合并行；验收记录必须附同名 JSON（reviewed_qids/content_digest/issues 状态机：open 禁止 PASS、fixed 须复验摘要、withdrawn 须误报依据），`run.json` 声明 `required_acceptance_scopes`；compare 疑似项携带稳定 `issue_id`，复核须写 `.pd/review-notes.json` 绑定报告/PDF 哈希，Markdown 非空不再足以放行。
+- 2026-09（当前证据门禁与原子发布 F08）：`deliver.py` 只接受 schema_version 2 门禁证据，正常模式按 配置→编号→对话→构建→双版诊断 顺序现场重跑且只信本次新报告；`--skip-checks` 跳过执行但不跳过验证（版本/摘要/PDF/日志/文本证据哈希逐项核对，弃用 mtime 依据）；教学验收不齐返回“待验收”并保留审读草稿；发布改临时目录+原子切换，失败保留上一版完整 release，manifest 记录证据哈希与实际工具版本；self-repair 旧 `.pd` 归档为 `.pd-history-v1` 并按 attempt 流程重建（任务推进至 checked，PASS 待 F09 验收）；`prompt_dialog.py` 明确口径为“配置已保存/发布待重建”，用户已提供的标题与开关直接复用不再弹窗。
+- 2026-09（运行时回归 F09）：新增 `scripts/test_runtime.py`——unittest + 临时目录的 16 项证据链回归（摘要语义、attempt 状态机、材料链、验收/复核记录、失败不信任旧报告、原子发布），不触碰真实工程；模板回归与运行时回归并列。
+- 2026-09（路由制文档重构 F10）：SKILL.md 由“唯一生效位置”改为路由制——规则归属唯一权威文件：运行流程/状态机/交付归 `references/production.md`，TeX 接口与配置字段归 `references/tex-interface.md`，写作者口径归 `prompts/subagent_prompt.md`（新增任务包清单），研究/验收口径分别归 `prompts/research_prompt.md` / `prompts/acceptance_prompt.md`；`templates/sec_template.tex` 注释精简为示例特殊点；`flow.md`/`teacher-guide.md` 明确只在课堂实施任务中读取；模型指定改为“低成本档位、实际模型名由宿主已配置映射提供”，不再硬编码具体型号。

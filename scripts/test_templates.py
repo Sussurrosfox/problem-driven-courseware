@@ -109,6 +109,103 @@ $2$。
 
 # ---------------------------------------------------------------- A. 纯逻辑
 
+SEC_DLG = r"""\section*{第一节}
+\begin{sectiondialogue}[入口]
+\speaker{$\Psi$}{逆命题是否成立？}
+\speaker{$\gamma$}{先看一个反例。}
+\speaker{$\beta$}{我枚举阶数。}
+\speaker{$\Psi$}{本节任务 SECTASKMARK：检验猜测。}
+\end{sectiondialogue}
+\begin{exampledialogue}[引例]
+% dialogue: qid=t-entry
+\speaker{$\Psi$}{判断该猜测 ENTRYQMARK。}
+\speaker{$\alpha$}{若存在则指数为 2。}
+\speaker{$\gamma$}{逐个检查。\dlgteacher{（DLGSECRET 确认矛盾。）}}
+\end{exampledialogue}
+\begin{probchain}
+% qid: t-entry
+\item \qtype{进入题} 计算 $1+1=$\fillin[$2$]{15mm}。
+\ansspace{1cm}
+\begin{solution}
+$2$。
+\end{solution}
+\begin{teacherNote}
+观察加法。
+\end{teacherNote}
+\end{probchain}
+\begin{knowledgebox}[本节结论]
+加法事实。
+\end{knowledgebox}
+"""
+
+COVERAGE_DLG = ("| dialogue-hook | sec1 | 逆命题冲突 | 承接 t-entry |\n"
+                "| t-entry | sec1 | 进入题 | guided |\n")
+
+
+def t_dialogue_checks():
+    """check_dialogue.py：结构、位置、绑定、泄露、配置范围。"""
+    import re as _re
+
+    def proj(sec, cov=COVERAGE_DLG, cfg_patch=None):
+        d = tempfile.mkdtemp()
+        make_project(d, ["sec1.tex"], {"sec1.tex": sec})
+        if cov is not None:
+            with open(os.path.join(d, "coverage-map.md"), "w",
+                      encoding="utf-8") as f:
+                f.write(cov)
+        if cfg_patch:
+            p = os.path.join(d, "config.yaml")
+            with open(p, encoding="utf-8") as f:
+                c = f.read()
+            with open(p, "w", encoding="utf-8") as f:
+                f.write(cfg_patch(c))
+        return d
+
+    ok = []
+    # 含两种对话块的合规工程 → 通过
+    d = proj(SEC_DLG)
+    r = run("check_dialogue.py", d)
+    ok.append(r.returncode == 0)
+    # 缺 sectiondialogue → 失败
+    d = proj(_re.sub(r"(?s)\\begin\{sectiondialogue\}.*?"
+                     r"\\end\{sectiondialogue\}\n?", "", SEC_DLG))
+    r = run("check_dialogue.py", d)
+    ok.append(r.returncode == 1 and "缺少 sectiondialogue" in r.stdout)
+    # 对话块混入 solution → 泄露判失败
+    d = proj(SEC_DLG.replace("\\speaker{$\\beta$}{我枚举阶数。}",
+                             "\\speaker{$\\beta$}{枚举。} "
+                             "\\begin{solution}泄露\\end{solution}"))
+    r = run("check_dialogue.py", d)
+    ok.append(r.returncode == 1 and "对话块内禁止" in r.stdout)
+    # exampledialogue 绑定不存在的 qid → 失败
+    d = proj(SEC_DLG.replace("% dialogue: qid=t-entry",
+                             "% dialogue: qid=t-nope"))
+    r = run("check_dialogue.py", d)
+    ok.append(r.returncode == 1 and "不是本切片题目 qid" in r.stdout)
+    # 旧工程：dialogue_enabled: false 且无对话块 → 完全沿用旧流程
+    d = proj(SEC_OK, cov=None,
+             cfg_patch=lambda c: c.replace("dialogue_enabled: true",
+                                           "dialogue_enabled: false"))
+    r = run("check_dialogue.py", d)
+    ok.append(r.returncode == 0 and "未使用对话层" in r.stdout)
+    # 列表形式：sec1 不在启用列表却含对话块 → 失败
+    d = proj(SEC_DLG,
+             cfg_patch=lambda c: c.replace("dialogue_enabled: true",
+                                           "dialogue_enabled: sec2"))
+    r = run("check_dialogue.py", d)
+    ok.append(r.returncode == 1 and "启用范围" in r.stdout)
+    # 缺 coverage-map.md → 失败
+    d = proj(SEC_DLG, cov=None)
+    r = run("check_dialogue.py", d)
+    ok.append(r.returncode == 1 and "coverage-map.md" in r.stdout)
+    # unprompted 入口题配对话 → 失败
+    d = proj(SEC_DLG.replace("\\item \\qtype{进入题}",
+                             "\\item \\practicemode{unprompted} "
+                             "\\qtype{进入题}"))
+    r = run("check_dialogue.py", d)
+    ok.append(r.returncode == 1 and "unprompted" in r.stdout)
+    report("对话层结构/泄露/配置检查（check_dialogue）", all(ok), str(ok))
+
 def t_fillin_parser():
     """V6：fillin 答案含花括号不得吞入宽度与尾部。"""
     cv = load("cv", "compare_versions.py")
@@ -307,6 +404,72 @@ MINIMAL_PDF = (
 
 # ------------------------------------------------------- B. 真实编译用例
 
+def t_real_build_dialogue():
+    """对话层真实编译：含两种对话块的 section 与无对话的旧 section 混合装配。"""
+    if not (shutil.which("xelatex") and shutil.which("pdftotext")):
+        skip("真实构建对话层工程", "缺少 xelatex 或 pdftotext")
+        return
+    import re as _re
+    with tempfile.TemporaryDirectory() as d:
+        sec2_old = SEC_OK.replace("第一节", "第二节") \
+            .replace("t-entry", "t2-entry").replace("t-identify", "t2-identify")
+        make_project(d, ["sec1.tex", "sec2.tex"],
+                     {"sec1.tex": SEC_DLG, "sec2.tex": sec2_old})
+        # 分节逐步改造：只对 sec1 启用对话层
+        p = os.path.join(d, "config.yaml")
+        with open(p, encoding="utf-8") as f:
+            c = f.read()
+        with open(p, "w", encoding="utf-8") as f:
+            f.write(c.replace("dialogue_enabled: true",
+                              "dialogue_enabled: sec1"))
+        r = run("gen_config.py", "--project", d)
+        assert r.returncode == 0, r.stdout + r.stderr
+        with open(os.path.join(d, "coverage-map.md"), "w",
+                  encoding="utf-8") as f:
+            f.write(COVERAGE_DLG)
+        r = run("check_numbering.py", d)
+        ok = r.returncode == 0
+        r = run("check_dialogue.py", d)
+        ok = ok and r.returncode == 0
+        r = run("build.py", d)
+        ok = ok and r.returncode == 0
+        if not ok:
+            report("真实构建对话层工程", False, (r.stdout or "")[-1500:])
+            return
+        r = run("compare_versions.py", d)
+        ok2 = r.returncode == 0
+        cv = load("cv_dlg", "compare_versions.py")
+        stu = "\n".join(cv.pdf_pages_text(os.path.join(d, "student.pdf")))
+        tea = "\n".join(cv.pdf_pages_text(os.path.join(d, "teacher.pdf")))
+        # 本环境 poppler 对 CJK 文本抽取不可靠（既有工程同样如此），
+        # 故可见性断言使用 ASCII 标记；双栏换行问题用去空白规避
+        stu_c = _re.sub(r"\s+", "", stu)
+        tea_c = _re.sub(r"\s+", "", tea)
+        # 学生版：可见提问与任务，不见 \dlgteacher 秘句
+        ok3 = "SECTASKMARK" in stu_c and "ENTRYQMARK" in stu_c
+        ok4 = "DLGSECRET" not in stu_c
+        ok5 = "DLGSECRET" in tea_c
+        # 旧 section（无对话块）行为不变：题号连续 1..3（sec1 一题 + sec2 两题）
+        nums = _re.findall(r"(?m)^\s*(\d+)\.", stu)
+        ok6 = sorted(nums) == ["1", "2", "3"]
+        # dialogue_student_reveal: full 时学生版应显示 \dlgteacher 内容
+        with open(p, encoding="utf-8") as f:
+            c = f.read()
+        with open(p, "w", encoding="utf-8") as f:
+            f.write(c.replace("dialogue_student_reveal: prompt_only",
+                              "dialogue_student_reveal: full"))
+        r = run("gen_config.py", "--project", d)
+        ok7 = r.returncode == 0
+        r = run("build.py", d)
+        ok7 = ok7 and r.returncode == 0
+        stu2 = "\n".join(cv.pdf_pages_text(os.path.join(d, "student.pdf")))
+        ok7 = ok7 and "DLGSECRET" in _re.sub(r"\s+", "", stu2)
+        report("真实构建对话层工程",
+               ok and ok2 and ok3 and ok4 and ok5 and ok6 and ok7,
+               "gates=%s compare=%s stu_dlg=%s hide=%s show=%s nums=%r full=%s"
+               % (ok, ok2, ok3, ok4, ok5, nums, ok7))
+
+
 def t_real_build():
     if not (shutil.which("xelatex") and shutil.which("pdftotext")):
         skip("真实构建最小工程（V1/V5 链路）", "缺少 xelatex 或 pdftotext")
@@ -352,6 +515,8 @@ def main():
     t_second_pass_failure()
     t_multicol_warning_scan()
     t_missing_summary_evidence()
+    t_dialogue_checks()
+    t_real_build_dialogue()
     t_real_build()
     print("=" * 60)
     if _failures:

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-TOOL_VERSION = "1.0"
+TOOL_VERSION = "1.2"
 r"""
 make_review_pack.py — 生成学生审读包（独立教学验收阶段一的受控输入）
 
@@ -21,7 +21,6 @@ content_digest 是验收记录（.pd/acceptance/<scope>.md）与 deliver.py
 用法: python make_review_pack.py <project>
 退出码: 0=成功, 2=缺少依赖或输入。
 """
-import hashlib
 import json
 import os
 import re
@@ -34,44 +33,10 @@ for stream in (sys.stdout, sys.stderr):
     if hasattr(stream, "reconfigure"):
         stream.reconfigure(encoding="utf-8", errors="replace")
 
-CONTENT_FILES = ("header.tex", "footer.tex", "config.tex",
-                 "config-class.tex", "student.tex", "teacher.tex",
-                 "config.yaml")
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import evidence  # noqa: E402
+
 IMG_RE = re.compile(r"\\includegraphics(?:\[[^\]]*\])?\{([^{}]+)\}")
-
-
-def sha256_file(path):
-    if not os.path.exists(path):
-        return None
-    h = hashlib.sha256()
-    with open(path, "rb") as f:
-        for chunk in iter(lambda: f.read(65536), b""):
-            h.update(chunk)
-    return h.hexdigest()
-
-
-def content_digest(pdir, sec_names):
-    """受审内容摘要：切片 + 模板 + 配置 + 版本开关文件，按名排序拼接。"""
-    h = hashlib.sha256()
-    for name in sorted(sec_names) + list(CONTENT_FILES):
-        d = sha256_file(os.path.join(pdir, name))
-        h.update(name.encode())
-        h.update((d or "MISSING").encode())
-    return h.hexdigest()
-
-
-def sec_names(pdir):
-    main = os.path.join(pdir, "main.tex")
-    names = []
-    if os.path.exists(main):
-        with open(main, encoding="utf-8", errors="replace") as f:
-            for m in re.finditer(r"\\input\{(sec[^/\\}.]+?)(?:\.tex)?\}",
-                                 f.read()):
-                names.append(m.group(1) + ".tex")
-    if not names:
-        names = sorted(f for f in os.listdir(pdir)
-                       if re.fullmatch(r"sec.*\.tex", f))
-    return names
 
 
 def main():
@@ -90,7 +55,14 @@ def main():
     text = r.stdout.decode("utf-8", errors="replace")
     pages = text.split("\x0c")
 
-    secs = sec_names(pdir)
+    # ---- F05：共享证据模块统一收集输入清单与摘要（含装配顺序与图片资产） ----
+    in_manifest = evidence.collect_inputs(pdir)
+    digest = evidence.content_digest(in_manifest)
+    secs = [f for f in in_manifest["assembly_order"]
+            if re.match(r"sec", os.path.basename(f))]
+    if not secs:
+        secs = sorted(f for f in os.listdir(pdir)
+                      if re.fullmatch(r"sec.*\.tex", f))
     images = {}
     for name in secs:
         path = os.path.join(pdir, name)
@@ -99,7 +71,7 @@ def main():
         with open(path, encoding="utf-8", errors="replace") as f:
             for img in IMG_RE.findall(f.read()):
                 ip = os.path.join(pdir, img)
-                images[img] = sha256_file(ip) or "MISSING"
+                images[img] = evidence.sha256_file(ip) or "MISSING"
 
     outdir = os.path.join(pdir, ".pd", "review")
     os.makedirs(outdir, exist_ok=True)
@@ -110,14 +82,22 @@ def main():
                 continue
             f.write("===== 第 %d 页 =====\n%s\n" % (i, page.strip()))
 
-    digest = content_digest(pdir, secs)
     manifest = {
+        "schema_version": evidence.SCHEMA_VERSION,
         "tool": "make_review_pack.py", "tool_version": TOOL_VERSION,
+        "scope": {"sections": secs},
         "generated": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
-        "content_digest": digest,
+        "input_digest": digest,
+        "content_digest": digest,  # 兼容字段：验收记录 digest 行引用此值
+        "pdf_sha256": {"student": evidence.sha256_file(pdf)},
+        "student_pdf_sha256": evidence.sha256_file(pdf),
         "sections": secs,
-        "student_pdf_sha256": sha256_file(pdf),
         "images": images,
+        "status": "pass",
+        "issues": [],
+        "evidence": {"missing_inputs": in_manifest["missing"],
+                     "unresolved_inputs": in_manifest["unresolved"],
+                     "card_refs": evidence.card_usages(pdir, secs)},
         "note": "文本视图仅供受控审读；阅读顺序存疑时审读渲染页。",
     }
     with open(os.path.join(outdir, "manifest.json"), "w",
