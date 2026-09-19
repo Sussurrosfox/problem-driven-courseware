@@ -5,7 +5,7 @@ r"""
 prompt_dialog.py — 自学案前置配置 UI 对话框
 
 功能说明：
-  在启动 problem-driven-courseware skill 制作自学案前弹出简明图形对话框，
+  在启动 problem-shrink-courseware skill 制作自学案前弹出简明图形对话框，
   交互式询问用户两项核心前置参数：
     1. 自学案主标题 (main_title): 例如「学案」、「高等代数学案」、「子空间与基学案」
     2. 是否启用受控课堂对话体 (dialogue_enabled): true / false

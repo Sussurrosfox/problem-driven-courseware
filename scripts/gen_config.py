@@ -165,11 +165,37 @@ def generate(tdir):
                 "margin_bottom", "margin_left", "margin_right", "headheight"]
     geo_map = {"margin_top": "top", "margin_bottom": "bottom",
                "margin_left": "left", "margin_right": "right"}
+
+    # Determine whether to emit the orientation keyword.
+    # geometry 宏包的 landscape 选项会交换 paperwidth 与 paperheight 的含义。
+    # 若用户已明确填写 paperwidth > paperheight（即横向尺寸），则 geometry 会根据
+    # 尺寸自动识别横向版面；此时若再加 landscape 选项，geometry 会再次对调两轴，
+    # 造成实际输出为竖版。
+    # 因此：只有当 paperwidth <= paperheight（纵向或方形）且 orientation=landscape
+    # 时才需要显式写出 landscape；当 paperwidth > paperheight 时完全省略 orientation。
+    _pw = cfg.get("paperwidth", "")
+    _ph = cfg.get("paperheight", "")
+
+    def _dim_to_pt(s):
+        """将带单位的尺寸字符串转为 pt，仅支持 mm/cm/in/pt。"""
+        m = re.match(r"^(\d+(?:\.\d+)?)(mm|cm|in|pt)$", s)
+        if not m:
+            return 0.0
+        v, u = float(m.group(1)), m.group(2)
+        return {"mm": v * 2.8346, "cm": v * 28.346, "in": v * 72.0, "pt": v}[u]
+
+    _pw_pt = _dim_to_pt(_pw)
+    _ph_pt = _dim_to_pt(_ph)
+    # 当 paperwidth > paperheight，省略 orientation（尺寸本身已是横版）
+    _skip_orientation = (_pw_pt > 0 and _ph_pt > 0 and _pw_pt > _ph_pt)
+
     opts = []
     for k in geo_keys:
         if k not in cfg:
             continue
         if k == "orientation":
+            if _skip_orientation:
+                continue  # 横向尺寸已确保横版，无需重复声明 landscape
             opts.append(cfg[k])  # landscape / portrait 为无值选项
         else:
             opts.append("%s=%s" % (geo_map.get(k, k), cfg[k]))
