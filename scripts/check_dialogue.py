@@ -408,9 +408,12 @@ def check_suspension_ending(name, b, lines, problems):
     if last_text is None:
         return  # 无台词，已由其他规则处理
 
-    ends_with_question = bool(re.search(r"[？?！!]\s*$", last_text))
-    has_suspension = bool(_SUSPENSION_INDICATORS.search(last_text))
-    has_resolution = bool(_PREMATURE_RESOLUTION.search(last_text))
+    # 移除可能包含在末句中的教师私密批注（\dlgteacher{...} 学生版不可见，不参与末句标点与悬置词判定）
+    visible_last_text = re.sub(r"\\dlgteacher\{[^{}]*\}", "", last_text).strip()
+
+    ends_with_question = bool(re.search(r"[？?！!]\s*$", visible_last_text))
+    has_suspension = bool(_SUSPENSION_INDICATORS.search(visible_last_text))
+    has_resolution = bool(_PREMATURE_RESOLUTION.search(visible_last_text))
 
     if has_resolution:
         problems.append(

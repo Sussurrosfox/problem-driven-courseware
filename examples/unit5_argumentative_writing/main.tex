@@ -1,0 +1,450 @@
+% !TeX spellcheck = en_US zh_CN
+% =============================================================================
+% Unit 5: Writing Argumentative Essays (B1+)
+% Paper-and-Pencil Language Learning - Example Unit
+% =============================================================================
+
+\documentclass[12pt]{ctexart}
+\usepackage{geometry}
+\geometry{a4paper, margin=25mm, headheight=15mm}
+
+% 加载语言学习专用宏包
+\input{lang-environments.tex}
+\input{lang-macros.tex}
+
+% 配置是否教师版
+% \def\TeacherVersion{true}  % 取消注释启用教师版
+
+\begin{document}
+
+% 标题页
+\begin{titlepage}
+  \centering
+  \vspace*{2cm}
+  
+  {\huge\textbf{英语学案}\\[0.5cm]}
+  {\Large 单元 5：议论文写作 (Argumentative Writing)}\\[0.3cm]
+  {\small CEFR B1+ | 建议用时：6 课时}\\[1cm]
+  
+  \vfill
+  
+  {\small 本单元学完后，你能：}
+  \begin{itemize}
+    \item 识别议论文的基本结构
+    \item 写出清晰的 thesis statement
+    \item 提供有力的支持性论据
+    \item 处理反方观点并进行反驳
+    \item 撰写 250-300 字的完整议论文
+  \end{itemize}
+  
+  \vspace{1cm}
+\end{titlepage}
+
+\tableofcontents
+\vspace{1cm}
+\hrule
+\vspace{1cm}
+
+% 导入章节
+\section*{I Section 0: 为什么要学习议论文写作？}
+
+\begin{writingscaffold}[单元学习目标]
+  \scenario{在学术、职业和日常生活中，我们经常需要表达自己的观点并说服他人}
+  
+  \taskgoal{掌握议论文写作技能}
+  
+  \usefulphrasestart
+    \item "In my view..." (表达个人观点)
+    \item "There are several reasons why..." (给出理由)
+    \item "Admittedly... However..." (让步和反驳)
+    \item "In conclusion..." (总结观点)
+  \endusefulphrasestart
+  
+  \learningtip{议论文不是"吵架"，而是用逻辑和证据说服读者。关键是 clear thinking + logical organization!}
+  
+  \can_do_start
+    \textbf{学完本单元后你能做到：}
+    \begin{itemize}
+      \item [ ] 分析一篇议论文的结构
+      \item [ ] 写出一篇有清晰 thesis 的文章
+      \item [ ] 提出至少 2 个支持性论据
+      \item [ ] 回应一个可能的反对意见
+      \item [ ] 完成 250-300 字完整文章
+    \end{itemize}
+  \can_do_end
+\end{writingscaffold}
+
+% 第一小节：范文分析
+\section*{II Section 1: 拆解一篇优秀议论文}
+
+\begin{readingtask}{Sample Essay Analysis}
+  \textbf{阅读以下范文，标注各部分功能}
+  
+  \begin{readingtext}
+    \genre{argumentative_essay}
+    \wordcount{280 words}
+    
+    {\large\textbf{Should Homework Be Reduced?}}
+    
+    Some people believe that students have too much homework and it should be reduced. \modelnote{thesis statement: clear position stated} In my view, schools should assign less homework because it causes stress, takes away family time, and doesn't always improve learning.
+
+    First of all, excessive homework creates unnecessary stress for students. \modelnote{topic sentence + explanation} Many students stay up late at night completing assignments, which affects their health and ability to concentrate in class. A study by the National Education Association found that 57\% of students feel stressed about homework.
+
+    Furthermore, homework reduces quality time with family and friends. \modelnote{second point + evidence} After a full day at school, students should have time to relax, pursue hobbies, and spend time with loved ones. When homework fills up evenings, students miss out on important social and emotional development.
+
+    Admittedly, some homework is necessary to practice what was learned in class. \modelnote{concession: acknowledge counterargument} However, the current amount is often too much. Teachers should focus on quality over quantity—assigning meaningful tasks rather than repetitive worksheets.
+
+    To conclude, reducing homework would benefit students' mental health, family relationships, and overall well-being. \modelnote{rephrased thesis + final thought} Schools should reconsider their homework policies to create a more balanced approach to education.
+  \end{readingtext}
+  
+  \textbf{【任务】标注文中加粗句子在各段落的功能}
+  
+  \begin{questions}
+    \question[5]{
+      第 1 段加粗句子的功能是什么？这是文章的哪个组成部分？
+    }
+    \ansspace[8cm]
+    
+    \question[3]{
+      第 2 段的开头句（First of all...）承担什么功能？
+    }
+    \fillin[Topic Sentence / Main Point]{6cm}
+    
+    \question[3]{
+      第 4 段的开头（Admittedly...）表示什么？
+    }
+    \fillin[Concession / Counterargument acknowledgment]{6cm}
+    
+    \question[4]{
+      最后一段的主要功能是什么？
+    }
+    \ansspace[6cm]
+  \end{questions}
+  
+  \begin{solution}
+    1. Thesis statement — 开篇陈述作者立场，明确提出三个支持理由
+       \teacherNote{学生需理解 thesis 的位置和功能}
+       
+    2. Topic sentence / Supporting point #1 — 第一个支持论点
+       \teacherNote{帮助学生识别 topic sentence 的特征}
+       
+    3. Concession / Acknowledgment of counterargument — 承认反方观点
+       \teacherNote{这是 argumentative essay 的关键要素：show you understand both sides}
+       
+    4. Conclusion — 总结全文，重申论点
+       \teacherNote{结尾应呼应开头但避免简单重复}
+       
+    \begin{teacherNote}
+    【教学要点】
+    - 本文是标准四段式议论文结构
+    - Thesis statement 放在第一段末尾最常见
+    - 每个主体段只有一个 main point（not trying to prove everything at once!）
+    - Concession paragraph 显示作者考虑周全（adds credibility）
+    
+    【学生可能困难】
+    - 区分 topic sentence 和 supporting details
+    - 不理解为什么需要 concession（要强调：这使论证更严谨）
+    
+    【延伸活动】
+    - 让学生画出文章结构图
+    - 标记所有连接词（because, furthermore, admittedly, to conclude）
+    \end{teacherNote}
+  \end{solution}
+\end{readingtask}
+
+\begin{genreanalysis}{Argumentative Essay Structure}
+  \begin{table}
+  \begin{tabular}{|l|p{5cm}|p{4cm}|}
+  \hline
+  \textbf{部分} & \textbf{功能} & \textbf{典型语言特征} \\
+  \hline
+  Introduction & 引出话题 + 表明立场 & Thesis statement, background info \\
+  \hline
+  Body Para 1 & 第一个支持论点 & Topic sentence + examples + explanation \\
+  \hline
+  Body Para 2 & 第二个论点 OR 反方反驳 & Counterargument + rebuttal OR second support \\
+  \hline
+  Conclusion & 重申论点 + 总结要点 & In conclusion..., Therefore... (without new info) \\
+  \hline
+  \end{tabular}
+  \end{table}
+  
+  \exercise{观察范文，填写各部分占用的字数比例}
+  \ansspace{4cm}
+\end{genreanalysis}
+
+% 第二小节：Thesis Statement 训练
+\section*{III Section 2: 写出有力的 Thesis Statement}
+
+\begin{grammardrill}{Thesis Statement 写作技巧}
+  \rule{Thesis statement 应包含：(1) clear position (2) main reasons (3) specific scope}
+  
+  \contrast{Weak vs Strong thesis comparison}
+  
+  \begin{exercises}
+    \question[辨认]{以下哪些是好的 thesis statement?}
+    \begin{enumerate}
+      \item "Homework is important." 
+        \studentonly{\ansspace[3cm]}\teacheronly{\error{Not specific enough}{"Important" for whom? How?}}
+      
+      \item "Schools should reduce homework because it causes stress and limits family time." 
+        \studentonly{\ansspace[3cm]}\teacheronly{\correct{✓ Good! Clear position + 2 reasons}}
+        
+      \item "This essay will discuss homework." 
+        \studentonly{\ansspace[3cm]}\teacheronly{\error{No position stated}{这只是预告，没有观点}}
+    \end{enumerate}
+    
+    \question[改写]{将模糊 thesis 改写成强 thesis}
+    \begin{enumerate}
+      \item Weak: "Social media has some problems."
+        \strongthesis{Student rewrites here: \ansspace[10cm]}
+        \teacheronly{\alternativeanswer{Social media negatively impacts teenagers by increasing anxiety and reducing face-to-face interaction skills.}}
+        
+      \item Weak: "Exercise is good."
+        \strongthesis{Student rewrites here: \ansspace[10cm]}
+        \teacheronly{\alternativeanswer{Regular exercise benefits college students by improving mental health, boosting energy levels, and enhancing academic performance.}}
+    \end{enumerate}
+    
+    \question[写作]{为以下题目写 thesis statement}
+    \topic{题目：Should universities require attendance?}
+    \yourthesis{Your thesis here: \ansspace[12cm]}
+    \teacheronly{\sampleanswer{Universities should require attendance because it improves learning outcomes, builds discipline, and fosters classroom community.}}
+  \end{exercises}
+  
+  \commonerrorwarning{"This essay will discuss..." 型的 thesis}{直接说你的立场，不要预告}
+  \commonerrorwarning{过于宽泛的 claim}{如"everything"... 缩小范围，具体化}
+\end{grammardrill}
+
+% 第三小节：支持性论据发展
+\section*{IV Section 3: 发展支持性论据}
+
+\begin{writingscaffold}[Supporting Arguments Development]
+  \structureguide
+    \item 从 thesis 出发，每个 reason 可以扩展成一个主体段
+    \item 使用 PREP 模式：Point → Reason → Example → Point (restated)
+    \item 证据类型：数据/例子/专家引用/个人经历
+  \endsstructureguide
+  
+  \usefullanguage
+    \item "The first reason is..." / "Another compelling argument is..."
+    \item "For instance..." / "A case in point is..."
+    \item "According to [source]..."
+    \item "This shows that..." / "This demonstrates..."
+  \endusefullanguage
+  
+  \begin{exercises}
+    \question[扩展]{将下列主题句发展成完整段落（至少 4 句话）}
+    
+    Topic sentence: "Excessive homework harms students' mental health."
+    
+    Your paragraph:
+    \ansspace[15cm]
+    
+    \teacheronly{%
+      \textbf{【评估要点】}
+      \begin{itemize}
+        \item Does it clearly state the point?
+        \item Is there reasoning/explanation?
+        \item Are there specific examples or data?
+        \item Does it conclude by restating the point?
+      \end{itemize}%
+    }
+    
+    \question[配对]{将下列例子与合适的主题句匹配}
+    \begin{tabular}{|l|l|}
+    \hline
+    \textbf{例子} & \textbf{主题句} \\
+    \hline
+    A. 研究表明每天运动的人压力更低 & 1. Exercise improves physical health \\
+    B. 许多学生抱怨睡眠不足 & 2. Too much homework causes stress \\
+    C. 参与团队运动培养领导能力 & 3. Extracurricular activities build skills \\
+    \hline
+    \end{tabular}
+    \ansspace[6cm]
+    \teacheronly{\correct{A→2, B→2, C→3}}
+  \end{exercises}
+\end{writingscaffold}
+
+% 第四小节：处理反方观点
+\section*{V Section 4: 处理反方观点}
+
+\begin{writingscaffold}[Counterargument and Rebuttal]
+  \scenario{优秀的议论文不回避反对意见，而是积极面对并用证据反驳}
+  
+  \usefulphrasestart
+    \item Making concessions: "Admittedly...", "It is true that...", "Some people argue that..."
+    \item Transitioning to rebuttal: "However...", "Nevertheless...", "On the other hand..."
+    \item Rebutting: "This view overlooks...", "The problem with this argument is...", "Evidence suggests otherwise..."
+  \endusefulphrasestart
+  
+  \modelparagraph
+    \textbf{示例段落：}
+    
+    Admittedly, some homework is necessary to reinforce classroom learning. \modelnote{concession signal} Students do need practice to master new skills. \modelnote{acknowledge valid point} \textbf{However}, the key issue is quantity versus quality. \modelnote{rebuttal transition + main counterclaim} Studies show that moderate, meaningful homework helps learning, while excessive rote drills actually decrease motivation and engagement. \modelnote{evidence-based rebuttal} Therefore, the solution is not eliminating homework entirely, but making it more purposeful and age-appropriate.
+  \endmodelparagraph
+  
+  \begin{exercises}
+    \question{分析上例：找出 concesssion 信号、valid point、rebuttal transition 和 evidence}
+    \ansspace[6cm]
+    
+    \question{写作练习：为你的论文写一个 counterargument paragraph}
+    \topic{基于你选择的作文题目}
+    \yourentyparagraph{\ansspace[12cm]}
+  \end{exercises}
+  
+  \learningtip{好的 rebuttal 不是贬低对方，而是显示你的观点更有说服力！}
+\end{writingscaffold}
+
+% 第五小节：综合写作任务
+\section*{VI Section 5: 完整议论文写作}
+
+\begin{writingscaffold}[Independent Writing Task]
+  \genre{argumentative_essay}
+  \writingaudience{Your English teacher and classmates}
+  \writingtone{Formal but personal}
+  \writingtasktype{Position essay}
+  
+  \scenario{就"是否应该延长学校图书馆开放时间"发表观点}
+  \taskgoal{写一篇 250-300 字的议论文}
+  \wordcountrange{250}{300}
+  \estimatedtime{45 minutes}
+  
+  \structureguidestart
+    \item Introduction (约 40-50 词): 背景 + thesis statement
+    \item Body Para 1 (约 80-90 词): 第一个支持理由 + 例子
+    \item Body Para 2 (约 80-90 词): 第二个理由 OR counterargument + rebuttal
+    \item Conclusion (约 40-50 词): 总结 + 最终thought
+  \endsstructureguide
+  
+  \checkliststart
+    \item Have I included a clear thesis statement?
+    \item Did I provide at least 2 supporting arguments?
+    \item Did I address a counterargument?
+    \item Is my word count between 250-300?
+    \item Did I use appropriate transitions (firstly, moreover, however, therefore)?
+    \item Have I checked for grammar and spelling errors?
+  \endchecklist
+  
+  \writingarea{请在此处或附页写作}
+  \ansspace[30cm]
+  
+  \selfreflectionstart
+    \textbf{自我反思：}
+    \begin{itemize}
+      \item 最满意的部分：________________________________________
+      \item 觉得最难的地方：_____________________________________
+      \item 下次想改进的方面：___________________________________
+    \end{itemize}
+  \selfreflectionend
+\end{writingscaffold}
+
+\begin{writingrubric}{Scoring Criteria}
+  \scoringcriterioncontent
+  \scoringcriterionlanguage
+  \scoringcriterionorg
+  \scoringcriterionregister
+  
+  \begin{tabular}{|c|p{2cm}|p{6cm}|}
+  \hline
+  \textbf{分数} & \textbf{等级} & \textbf{描述} \\
+  \hline
+  13-15 & Excellent & 论点清晰有力，组织严谨，语言准确多样，完全符合体裁规范 \\
+  \hline
+  10-12 & Good & 论点明确，结构完整，语言较准确，偶有小错误但不影响理解 \\
+  \hline
+  7-9 & Satisfactory & 基本表达观点，结构较清晰，有一定语法错误但可理解 \\
+  \hline
+  4-6 & Developing & 论点不够清楚，组织结构混乱，语言错误较多影响理解 \\
+  \hline
+  0-3 & Needs Improvement & 未能有效表达观点，严重偏离要求 \\
+  \hline
+  \end{tabular}
+\end{writingrubric}
+
+% 第六小节：同伴互评与修改
+\section*{VII Section 6: Peer Review and Revision}
+
+\begin{peerreviewform}
+  \textbf{同伴互评表}
+  
+  \textbf{被评价人：} ___________________
+  
+  \textbf{优点（至少指出 2 处）:}
+  \begin{enumerate}
+    \item ______________________________________________________________
+    \item ______________________________________________________________
+  \end{enumerate}
+  
+  \textbf{建议改进之处（选择 1-2 项）:}
+  \begin{itemize}
+    \item [ ] Thesis statement 可以更清晰
+    \item [ ] 论据需要更多具体例子
+    \item [ ] 某些段落需要更好的衔接
+    \item [ ] 注意检查拼写和语法错误
+    \item [ ] 其他：_______________________
+  \end{itemize}
+  
+  \textbf{最喜欢的一句话：}
+  ____________________________________________________________________
+  
+  \textbf{总体印象（1-5 分）:} ____ / 5
+\end{peerreviewform}
+
+\begin{revisionchecklist}
+  \textbf{修改清单（根据同伴反馈和自己的反思）}
+  \begin{itemize}
+    \item [ ] 修改 thesis statement：
+    \item [ ] 增加或删除论据：
+    \item [ ] 改进段落衔接：
+    \item [ ] 纠正语言错误：
+    \item [ ] 调整字数至 250-300：
+  \end{itemize}
+  
+  \textbf{最终版本写作区：}
+  \ansspace[25cm]
+\end{revisionchecklist}
+
+% 单元结束
+\vspace{2cm}
+\hrule
+\vspace{1cm}
+
+\begin{languagebox}{本单元核心要点}
+\begin{enumerate}
+  \item 议论文结构：Introduction → Body paragraphs (with counterargument) → Conclusion
+  \item Thesis statement 三要素：position + reasons + scope
+  \item 支持论据发展模式：PREP (Point → Reason → Example → Point)
+  \item Counterargument 写法：admit valid point → rebut with stronger evidence
+  \item 重要连接词：firstly/furthermore/however/therefore/in conclusion
+\end{enumerate}
+\end{languagebox}
+
+\teacheronly{
+\begin{teacherNote}{Unit 5 教学指南}
+【时间安排建议】
+- Section 1 (范文分析): 1 课时 — 重点讲解结构和术语
+- Section 2 (Thesis 训练): 1 课时 — 大量练习 weak→strong thesis
+- Section 3 (论据发展): 1 课时 — PREP 模式操练
+- Section 4 (反方观点): 1 课时 — 示范高质量 rebuttal
+- Section 5 (独立写作): 2 课时 — 课堂写作 + 同伴互评
+- Section 6 (修改): 可布置为作业
+
+【常见学生困难】
+1. Thesis 写得模糊 — 多给对比练习
+2. 论据不够具体 — 示范如何从 general → specific
+3. 不会写 counterargument — 提供句型模板 scaffolding
+4. 字数控制不好 — 教他们分段规划字数
+
+【评估要点】
+- 是否覆盖 rubric 全部 4 个维度
+- 关注进步幅度而非绝对分数
+- 重视 revision process（体现 learning journey）
+
+【拓展活动】
+- Gallery walk: 展示优秀范文，全班投票
+- Debate 活动：现场辩论对应议题
+- 邀请高年级学长分享写作经验
+\end{teacherNote}
+}
+
+\end{document}

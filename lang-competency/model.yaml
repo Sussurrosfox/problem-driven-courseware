@@ -1,0 +1,292 @@
+# =============================================================================
+# 纸笔外语学习 - 语言能力模型
+# Paper-and-Pencil Language Learning Competency Model
+# =============================================================================
+
+proficiency_levels:
+  A1: 
+    description: "入门级"
+    reading_targets:
+      - "识别高频词和简单句"
+      - "理解简短通知、卡片或菜单"
+      - "从图片中提取直观信息"
+    writing_targets:  # v2.0: replaced with translation_targets
+      - "填写个人信息表格"
+      - "写简单句描述日常活动"
+      - "列出购物清单式内容"
+    translation_targets:  # 新增：翻译目标
+      - "翻译简单日常用语"
+      - "将短句从中文译为英文（5-10 词）"
+      - "识别并翻译常见词汇
+    vocabulary_size: "500-1000 高频词"
+    grammar_focus:
+      - "be 动词"
+      - "一般现在时"
+      - "基础疑问句"
+      - "简单代词"
+      
+  A2:
+    description: "突破级"
+    reading_targets:
+      - "理解日常生活相关短文"
+      - "抓住故事主线"
+      - "从邮件/信件中获取具体信息"
+    writing_targets:  # v2.0: replaced with translation_targets
+      - "写简短个人信件"
+      - "描述经历和事件（过去时）"
+      - "表达简单偏好和理由"
+    translation_targets:  # 新增：翻译目标
+      - "翻译日常生活相关句子（10-15 词）"
+      - "将简单段落翻译成英文（80-100 字）"
+      - "表达个人经历和偏好
+    vocabulary_size: "1500-2000 词"
+    grammar_focus:
+      - "一般过去时"
+      - "进行时"
+      - "情态动词 basic"
+      - "比较级/最高级"
+      
+  B1:
+    description: "独立级"
+    reading_targets:
+      - "理解常见主题文章主旨"
+      - "识别作者态度和观点"
+      - "从较长文本中筛选关键信息"
+      - "理解报纸/杂志简化版"
+    writing_targets:  # v2.0: replaced with translation_targets
+      - "写观点明确的信件/文章"
+      - "叙述完整经历"
+      - "给出简单建议或意见"
+      - "写 120-200 字连贯段落"
+    translation_targets:  # 新增：翻译目标
+      - "翻译常见话题的句子（15-20 词）"
+      - "将段落翻译成英文（100-150 字）"
+      - "表达个人观点和理由
+    vocabulary_size: "3000-4500 词"
+    grammar_focus:
+      - "现在完成时"
+      - "条件句 type 1&2"
+      - "被动语态 basic"
+      - "定语从句 basic"
+      
+  B2:
+    description: "熟练级"
+    reading_targets:
+      - "理解复杂文章主旨和细节"
+      - "辨识隐含意义和修辞手法"
+      - "阅读专业领域入门文献"
+      - "快速 skimming 和 scanning"
+    writing_targets:  # v2.0: replaced with translation_targets
+      - "写结构严谨的议论文"
+      - "撰写正式书信/报告"
+      - "进行学术摘要写作"
+      - "写 250-350 字多角度论证"
+    translation_targets:  # 新增：翻译目标
+      - "翻译较复杂句子（20-25 词）"
+      - "将专业领域段落翻译成英文（150-200 字）"
+      - "准确传达原文语气和立场
+    vocabulary_size: "6000-8000 词"
+    grammar_focus:
+      - "所有时态综合使用"
+      - "条件句 type 3&mixed"
+      - "复杂被动结构"
+      - "名词性/形容词性从句"
+      - "间接引语"
+      
+  C1:
+    description: "精通级"
+    reading_targets:
+      - "理解长篇复杂文献"
+      - "辨识微妙语气和立场"
+      - "阅读学术论文和专业期刊"
+      - "批判性分析文本论点"
+    writing_targets:  # v2.0: replaced with translation_targets
+      - "写逻辑严密的学术文章"
+      - "进行专业水平评论"
+      - "灵活适应不同文体"
+      - "写 400+ 字深度论述"
+    translation_targets:  # 新增：翻译目标
+      - "翻译学术文本中的复杂句组"
+      - "将长篇文章片段翻译成英文（200-250 字）"
+      - "保持原文风格和语气
+    vocabulary_size: "10000-14000 词"
+    grammar_focus:
+      - "所有高级语法结构"
+      - "复杂衔接手段"
+      - "风格化句式变换"
+      - "学术写作规范"
+      
+  C2:
+    description: " mastery 级"
+    reading_targets:
+      - "理解任何难度英文文本"
+      - "瞬间捕捉细微差别"
+      - "快速处理大量文献"
+    writing_targets:  # v2.0: replaced with translation_targets
+      - "写出地道自然的学术作品"
+      - "灵活运用所有文体"
+      - "达到接近母语者水平"
+    translation_targets:  # 新增：翻译目标
+      - "无缝转换中英语言差异"
+      - "处理文化特定表达的翻译"
+      - "达到专业级翻译精度
+    vocabulary_size: "16000+ 词"
+    grammar_focus:
+      - "自动化准确运用"
+      - "修辞和风格大师"
+
+paper_specific_competencies:
+  reading_analysis:
+    - "skimming for gist"  # 略读抓主旨
+    - "scanning for details"  # 扫读找细节
+    - "inferring meaning from context"  # 上下文推断词义
+    - "identifying cohesive devices"  # 识别衔接手段
+    - "recognizing text structure"  # 辨认文本结构
+    - "distinguishing fact from opinion"  # 区分事实与观点
+    
+  writing_systems:
+    - "paragraph development"  # 段落发展技巧
+    - "argument construction"  # 论证构建
+    - "genre conventions"  # 体裁规范掌握
+    - "revision strategies"  # 修改策略
+    - "coherence and cohesion"  # 连贯与衔接
+    - "register appropriateness"  # 语域得体性
+    
+  grammar_mastery:
+    - "sentence pattern recognition"  # 句型识别
+    - "transformation exercises"  # 句型转换
+    - "error detection and correction"  # 错误检测与纠正
+    - "style improvement"  # 风格提升
+    - "complex sentence building"  # 复杂句构建
+    
+  translation_skills:  # v2.0: Enhanced with detailed categories
+    chinese_to_english:
+      - "lexical_equivalence": 词汇对等转换
+      - "avoiding_chinglish": 避免中式英语
+      - "syntax_adaptation": 句法结构调整
+      - "idiomatic_expression": 地道表达替换
+      - "register_matching": 语域匹配
+      
+    english_to_chinese:
+      - "reading_for_translation": 阅读理解的翻译转化
+      - "cultural_adaptation": 文化语境适配
+      - "natural_rendition": 自然流畅的表达
+      
+    transformation_skills:
+      - "paraphrasing": 同义改写
+      - "sentence_combining": 句子合并
+      - "voice_conversion": 语态转换
+      - "structure_restructuring": 结构重组
+
+genre_proficiencies:
+  narrative:
+    description: "记叙文"
+    structure: "开端→发展→高潮→结局"
+    language_features:
+      - "past tense dominance"
+      - "time connectors"
+      - "descriptive details"
+    typical_tasks:
+      - "story continuation"
+      - "personal experience writing"
+      - "paragraph sequencing"
+      
+  exposition:
+    description: "说明文"
+    structure: "主题引入→分点解释→总结"
+    language_features:
+      - "present simple"
+      - "definition sentences"
+      - "example markers"
+    typical_tasks:
+      - "process description"
+      - "concept explanation"
+      - "flowchart completion"
+      
+  argumentation:
+    description: "议论文"
+    structure: "Thesis→支持论据→反方反驳→结论"
+    language_features:
+      - "modal verbs for stance"
+      - "logical connectors"
+      - "concession clauses"
+    typical_tasks:
+      - "position essay"
+      - "debate preparation"
+      - "critical response"
+      
+  correspondence:
+    description: "书信体"
+    subtypes:
+      - "informal_letter": "私人信件"
+      - "formal_email": "商务邮件"
+      - "complaint_letter": "投诉信"
+      - "application_letter": "申请信"
+    language_features:
+      - "salutation formulas"
+      - "closing phrases"
+      - "tone modulation"
+    typical_tasks:
+      - "email composition"
+      - "letter rewriting"
+      - "register conversion"
+
+assessment_criteria:
+  writing_rubric:
+    content_achievements:
+      weight: 0.35
+      description: "内容达成度"
+      points:
+        - "涵盖所有要求要点"
+        - "覆盖大部分要点但有遗漏"
+        - "部分内容偏离主题"
+        
+    language_control:
+      weight: 0.35
+      description: "语言控制力"
+      sub_criteria:
+        grammar_accuracy:
+          scale: "0-3 分"
+          focus: "错误频率和影响"
+        vocabulary_range:
+          scale: "0-3 分"
+          focus: "多样性和地道性"
+          
+    organization_cohesion:
+      weight: 0.20
+      description: "组织结构与衔接"
+      features:
+        - "段落清晰度"
+        - "连接词使用"
+        - "逻辑推进"
+        
+    register_appropriateness:
+      weight: 0.10
+      description: "语域得体性"
+      aspects:
+        - "语气一致性"
+        - "正式程度"
+        - "文化适宜性"
+        
+  reading_assessment:
+    literal_comprehension:
+      weight: 0.3
+      description: "字面理解"
+      tasks:
+        - "事实信息提取"
+        - "细节识别"
+        
+    inferential_comprehension:
+      weight: 0.4
+      description: "推断理解"
+      tasks:
+        - "隐含意义推断"
+        - "作者意图识别"
+        
+    critical_evaluation:
+      weight: 0.3
+      description: "批判评价"
+      tasks:
+        - "论点评估"
+        - "偏见识别"
+        - "证据质量判断"

@@ -41,6 +41,7 @@
 \usepackage{graphicx}
 \usepackage{xcolor}
 \usepackage{comment}
+\usepackage{ulem} % 替代原生 underline，支持断行的下划线（填空答案）
 \usepackage[framemethod=TikZ]{mdframed}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta, positioning, calc, shapes.geometric}
@@ -53,6 +54,12 @@
   citecolor=blue!75!black,
   urlcolor=blue!75!black
 }
+
+% -----------------------------------------------------------------------------
+% 排版容差防御：全局注入 \emergencystretch 消除中英混排与等宽代码块微溢出
+% 依据 report.md 第 6 条（六大溢出根源#6）及修复措施表最后一行
+% -----------------------------------------------------------------------------
+\setlength{\emergencystretch}{2.5em}
 
 % -----------------------------------------------------------------------------
 % 统计计数器（编译后输出环境使用摘要，便于验收与排错）
@@ -133,21 +140,21 @@
     \fi
     \if\relax\detokenize{#1}\relax
       \PackageWarning{problem-driven}{\protect\fillin\space 未提供参考答案（第 \thepdFillinCount\space 处）}%
-      \underline{\hspace{#2}}%
+      \uline{\hspace{#2}}% 使用 ulem 宏包\uline，兼容折行（依据 report.md 修复措施表第 5 条）
     \else
       \ifmmode
         \settowidth{\fillinwidth}{$\bm{#1}$}%
         \ifdim\fillinwidth>#2
-          \underline{\hspace{0.5em}{\color{blue!85!black}\bm{#1}}\hspace{0.5em}}%
+          \uline{\hspace{0.5em}{\color{blue!85!black}\bm{#1}}\hspace{0.5em}}% 支持折行
         \else
-          \underline{\makebox[#2][c]{$\color{blue!85!black}\bm{#1}$}}%
+          \uline{\makebox[#2][c]{\color{blue!85!black}\bm{#1}}}% 支持折行
         \fi
       \else
         \settowidth{\fillinwidth}{\bfseries#1}%
         \ifdim\fillinwidth>#2
-          \underline{\hspace{0.5em}\textbf{\color{blue!85!black}#1}\hspace{0.5em}}%
+          \uline{\hspace{0.5em}\textbf{\color{blue!85!black}#1}\hspace{0.5em}}% 支持折行
         \else
-          \underline{\makebox[#2][c]{\bfseries\color{blue!85!black}#1}}%
+          \uline{\makebox[#2][c]{\bfseries\color{blue!85!black}#1}}% 支持折行
         \fi
       \fi
     \fi
@@ -196,7 +203,7 @@
     \if\relax\detokenize{#2}\relax
       \PackageWarning{problem-driven}{\protect\fillin\space 缺少预留宽度参数（第 \thepdFillinCount\space 处）}%
     \fi
-    \underline{\hspace{#2}}%
+    \uline{\hspace{#2}}% 使用 ulem 宏包\uline，兼容折行（依据 report.md 修复措施表第 5 条）
   }
 \fi
 
@@ -227,6 +234,19 @@
     \end{minipage}%
   \end{lrbox}%
   \noindent\fbox{\usebox{\microbox}}\par\vspace{0.8ex}%
+}
+
+% -----------------------------------------------------------------------------
+% 语言卡片（languagecard）：灰色横幅标题，强制\par\nopagebreak 防止跨栏穿透
+% 参考 8-13 sec1.tex L11-14；修复报告.md 第 2 条（标题缺\par 导致表格穿透）
+% -----------------------------------------------------------------------------
+\newenvironment{languagecard}[1][核心词汇]{%
+  \par\vspace{0.6ex}%
+  \begingroup\color{gray!50!black}\small
+  \noindent\textbf{【#1】}\par\vspace{0.3ex}%
+  \nobreak\vspace{0.4ex}%
+}{%
+  \endgroup\par\nopagebreak\vspace{0.6ex}%
 }
 
 % -----------------------------------------------------------------------------

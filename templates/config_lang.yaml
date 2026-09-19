@@ -1,0 +1,81 @@
+# =============================================================================
+# 纸笔外语自学案 —— 全局参数配置
+# Paper-and-Pencil Language Learning Configuration
+# =============================================================================
+
+# --- 语言能力设置 ---
+target_language: "English"     # 目标语言：English / French / German 等
+proficiency_target: "B1"       # CEFR 目标等级：A1/A2/B1/B2/C1/C2
+skill_emphasis:                # 技能侧重（书写顺序）
+  - "reading"                  # 阅读优先
+  - "writing"                  # 写作优先
+  
+# --- 文体侧重 ---
+genre_focus:                   # 体裁重点训练方向
+  - "argumentative_essay"      # 议论文
+  - "personal_correspondence"  # 个人书信
+
+# --- 练习类型配置 ---
+practice_types:
+  reading_comprehension: true  # 是否包含阅读理解任务
+  grammar_exercises: true      # 是否包含语法操练
+  translation_practice: true   # 是否包含翻译练习
+  guided_writing: true         # 是否包含指导性写作
+  independent_writing: true    # 是否包含独立写作
+
+# --- 语料库配置 ---
+corpus_integration: true       # 是否启用语料库验证
+corpus_source: "coca"          # COCA / BNC / Sketch Engine
+
+# --- 双语支持配置 ---
+bilingual_support:
+  mode: "chinese_annotations"  # chinese_annotations / english_immersion
+  native_language: "Chinese"   # 学习者母语
+
+# --- 范文支持配置 ---
+model_answers:
+  provide_models: true         # 是否提供范文/参考答案
+  model_with_annotations: true # 范文是否带批注
+  multiple_versions: false     # 是否提供不同分数段范文
+
+# --- 评分标准配置 ---
+rubrics:
+  writing_rubric: "detailed_4band"  # holistic/analytic/4-band
+  provide_marking_schemes: true
+
+# --- 页面设置（纸笔学习专用）---
+# 学生版：A3 横版双栏折页大开本标准；教师版：A4 竖版单栏
+font_size: 12pt           # ctexart 字号选项
+paperwidth: 420mm         # A3 标准宽度（横向）
+paperheight: 297mm        # A3 标准高度（横向）
+orientation: landscape     # 横向排版（A3 横版双栏）
+margin_top: 20mm
+margin_bottom: 20mm
+margin_left: 25mm         # 装订边距
+margin_right: 25mm
+headheight: 15mm
+
+# --- 栏目设置 ---
+columns: 2                # 学生版双栏排版（教师版自动覆盖为 A4 单栏）
+
+# --- 答题空间配置 ---
+answer_spaces:
+  short_answer: "2cm"           # 短句填空留白
+  long_answer: "5cm"            # 长句/段落留白
+  essay_space: "full_page"      # 作文留整页
+  include_grid_paper: false     # 是否附带方格纸样式
+
+# --- 标题区 ---
+main_title: 英语学案
+
+# --- 页眉页脚文案 ---
+teacher_head_left: 【教师用书·参考答案与教学要点】
+
+# --- 对话层（可选；纸笔版本弱化使用）---
+dialogue_enabled: false         # 建议设为 false（纸笔版本以书面形式为主）
+dialogue_section_opening: false
+dialogue_example_opening: false
+dialogue_max_section_turns: 8
+dialogue_max_example_turns: 6
+dialogue_student_reveal: prompt_only
+dialogue_require_coverage_hook: true

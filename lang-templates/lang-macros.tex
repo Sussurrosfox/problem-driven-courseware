@@ -1,0 +1,295 @@
+% =============================================================================
+% 纸笔外语学习 - LaTeX 宏包定义
+% Paper-and-Pencil Language Learning - Macro Definitions
+% =============================================================================
+
+% CEFR 等级标记
+\providecommand{\cefr}[1]{\textsuperscript{\textsf{CEFR #1}}}
+\newcommand{\cefrAone}{\textsuperscript{\textsf{CEFR A1}}}
+\newcommand{\cefrAtwo}{\textsuperscript{\textsf{CEFR A2}}}
+\newcommand{\cefrBone}{\textsuperscript{\textsf{CEFR B1}}}
+\newcommand{\cefrBtwo}{\textsuperscript{\textsf{CEFR B2}}}
+\newcommand{\cefrCone}{\textsuperscript{\textsf{CEFR C1}}}
+\newcommand{\cefrCtwo}{\textsuperscript{\textsf{CEFR C2}}}
+
+% 体裁标记
+\providecommand{\genre}[1]{\textbf{[体裁：#1]}}
+\newcommand{\genrenarrative}{\genre{记叙文}}
+\newcommand{\genreexposition}{\genre{说明文}}
+\newcommand{\genreargumentation}{\genre{议论文}}
+\newcommand{\genrecorrespondence}{\genre{书信体}}
+
+% 字数统计
+\providecommand{\wordcount}[1]{\textbf{[字数要求：#1]}}
+\newcommand{\wordcountrange}[2]{\textbf{[字数要求：#1-#2 词]}}
+
+% 难度分级
+\providecommand{\difficulty}[1]{\textcolor{blue!70!black}{\small\textbf{难度：}#1}}
+
+% IPA 音标标注（保留，用于拼读训练）
+\newcommand{\ipa}[1]{\textsf{/ #1 /}}
+\newcommand{\ipaeth}{\ipa{θ}}
+\newcommand{\ipath}{\ipa{ð}}
+\newcommand{\iparl}{\ipa{l}}
+\newcommand{\iparr}{\ipa{r}}
+
+% 填空格式
+\newcommand{\fillanswer}[2][2cm]{\underline{\hspace{#1}}\studentonly{\textsuperscript{\tiny[#2]}}}
+\newcommand{\shortfill}[1][1cm]{\fillanswer[#1]}
+\newcommand{\longfill}[1][4cm]{\fillanswer[#1]}
+
+% 错误标注与纠正
+\providecommand{\error}[2]{\uline{\sout{#1}}\teacheronly{\textcolor{red!70!black}{\textbf{→ #2}}}}
+\newcommand{\correct}[1]{\textcolor{green!60!black}{\textbf{✓ #1}}}
+
+% 使用短语框
+\providecommand{\usefulphrase}[1]{%
+  \vspace{0.3em}%
+  \noindent\framebox[\linewidth][l]{%
+    \parbox[t]{\dimexpr\linewidth-2\fboxsep}[t]{%
+      \small\textbf{💡 Useful phrase:} #1%
+    }%
+  }%
+  \vspace{0.3em}%
+}
+
+% 交际功能标记
+\newcommand{\speechact}[1]{\textbf{[功能：#1]}}
+\newcommand{\req}{\speechact{请求}}
+\newcommand{\sug}{\speechact{建议}}
+\newcommand{\apolo}{\speechact{道歉}}
+\newcommand{\thank}{\speechact{感谢}}
+\newcommand{\complain}{\speechact{投诉}}
+\newcommand{\recommend}{\speechact{推荐}}
+
+% 真实语料标记
+\newcommand{\auth}[1]{\textcolor{blue!60!black}{\small\textit{[\textasciitilde 语料来源：#1]}}}
+\newcommand{\authcoca}{\auth{COCA}}
+\newcommand{\authbnc}{\auth{BNC}}
+
+% 翻译对照
+\newcommand{\chinesetag}[1]{\textbf{【中文】}#1}
+\newcommand{\englishtag}[1]{\textbf{[英文]} #1}
+
+% =============================================================================
+% v2.0: 翻译训练相关宏（新增）
+% =============================================================================
+
+% 中文原文输入
+\newcommand{\chineseinput}[1]{%
+  \begin{chinesetext}
+  #1
+  \end{chinesetext}%
+}
+
+% 语法焦点提示
+\newcommand{\transfocus}[1]{%
+  \syntaxfocus{#1}%
+}
+
+% 字数要求简化版
+\newcommand{\transwordlimit}[1]{%
+  \wordlimit{#1}%
+}
+
+% 关键词汇对照条目
+\newcommand{\transkeyword}[2]{%
+  \item #1: #2
+}
+
+% 评分维度标签（v2.0 翻译标准）
+\newcommand{\criterionfidelity}{\textbf{内容忠实度 (40\%)}}
+\newcommand{\criteriongrammaraccuracy}{\textbf{语法准确性 (30\%)}}
+\newcommand{\criterionlexicalappropriateness}{\textbf{词汇地道性 (20\%)}}
+\newcommand{\criterioncohesion}{\textbf{衔接连贯性 (10\%)}}
+
+% 常见翻译错误预警
+\newcommand{\translationerrorwarning}[2]{%
+  \teacheronly{%
+    \vspace{0.3em}%
+    \framebox[\linewidth][l]{%
+      \parbox[t]{\dimexpr\linewidth-2\fboxsep}[t]{%
+        \small\textbf{⚠ 常见中式英语：}"#1" \\- \\_\textbf{应译为：}"#2"
+      }%
+    }%
+    \vspace{0.3em}%
+  }%
+}
+
+% 跨文化翻译注释
+\newcommand{\culturetranslatip}[2]{%
+  \marginpar{%
+    \framebox[\linewidth][l]{%
+      \parbox[t]{\marginparwidth-2\fboxsep}{%
+        \small\textbf{🌍 文化翻译提示}\\
+        #1 \\- \\#2
+      }%
+    }%
+  }%
+}
+
+% =============================================================================
+% v2.0: 移除写作任务标识（已废弃）
+% 说明：原 writingtasktype/writingaudience/writingtone 等命令不再使用
+%       保留向后兼容但标记为 deprecated
+% =============================================================================
+
+% 旧版写作命令（deprecated after v2.0）
+% \newcommand{\writingtasktype}[1]{\textbf{任务类型：}#1}  % v2.0 DEPRECATED
+% \newcommand{\writingaudience}[1]{\textbf{读者对象：}#1}  % v2.0 DEPRECATED
+% \newcommand{\writingtone}[1]{\textbf{语气风格：}#1}      % v2.0 DEPRECATED
+
+% 评分维度标签
+\newcommand{\criterioncontent}{\textbf{内容 (35\%)}}
+\newcommand{\criterionlanguage}{\textbf{语言 (35\%)}}
+\newcommand{\criterionorg}{\textbf{组织 (20\%)}}
+\newcommand{\criterionregister}{\textbf{得体性 (10\%)}}
+
+% 段落结构提示
+\newcommand{\introductoryparagraph}{\textbf{引言段}}
+\newcommand{\bodyparagraph}[1]{\textbf{主体段 #1}}
+\newcommand{\concludingparagraph}{\textbf{结论段}}
+
+% 衔接手段识别
+\newcommand{\transition}[1]{\textcolor{purple!70!black}{\textbf{[连接词：#1]}}}
+\newcommand{\reference}[1]{\textcolor{orange!70!black}{\textbf{[指代：#1]}}}
+\newcommand{\ellipsismark}[1]{\textcolor{green!60!black}{\textbf{[省略：#1]}}}
+
+% 词汇链追踪
+\newcommand{\lexicalchain}[1]{\textcolor{teal!70!black}{\textbf{[词汇链：#1]}}}
+
+% 常见错误预警
+\newcommand{\commonerrorwarning}[2]{%
+  \teacheronly{%
+    \vspace{0.3em}%
+    \framebox[\linewidth][l]{%
+      \parbox[t]{\dimexpr\linewidth-2\fboxsep}[t]{%
+        \small\textbf{⚠ 学生常犯错误：} "#1" \quad $\rightarrow$ \textbf{应为：} "#2"%
+      }%
+    }%
+    \vspace{0.3em}%
+  }%
+}
+
+% 跨文化注释
+\newcommand{\culturetip}[1]{%
+  \marginpar{%
+    \framebox[\linewidth][l]{%
+      \parbox[t]{\marginparwidth-2\fboxsep}{%
+        \small\textbf{🌍 文化提示}\\#1%
+      }%
+    }%
+  }%
+}
+
+% 学习策略提示
+\newcommand{\learningtip}[1]{%
+  \vspace{0.3em}%
+  \noindent\framebox[\linewidth][l]{%
+    \parbox[t]{\dimexpr\linewidth-2\fboxsep}[t]{%
+      \small\textbf{💡 学习小贴士：} #1%
+    }%
+  }%
+  \vspace{0.3em}%
+}
+
+% 自我评估工具
+\newcommand{\selfcheckstart}{%
+  \vspace{0.5em}%
+  \textbf{自我评估：}%
+  \begin{itemize}[leftmargin=*, label=$\square$]%
+}
+\newcommand{\selfcheckend}{\end{itemize}\vspace{0.3em}}
+
+% 同伴互评提示
+\newcommand{\peerreviewprompt}[1]{%
+  \vspace{0.3em}%
+  \textbf{同伴互评：}#1%
+}
+
+% 范文批注标记
+\newcommand{\modelnote}[1]{%
+  \teacheronly{%
+    \textcolor{blue!70!black}{\textbf{【注释：}#1\textbf{]}}%
+  }%
+}
+
+% 梯度练习标识（v2.0 翻译层级）
+\newcommand{\controlledpractice}{\textbf{Level 1: 单句精准翻译}}
+\newcommand{\guidedpractice}{\textbf{Level 2: 段落要点翻译（强支持）}}
+\newcommand{\freeproduction}{\textbf{Level 3: 观点转换表达（中等支持）}}
+% Note: v2.0 removed Level 4 independent writing
+
+% 任务步骤编号
+\newcommand{\langstep}[2]{\textbf{步骤 #1:} #2}
+\providecommand{\step}{\langstep}
+
+% 时间建议
+\newcommand{\estimatedtime}[1]{\textbf{建议用时：}#1}
+
+% 答案揭示控制
+\newcommand{\revealanswer}[1]{%
+  \studentonly{}%
+  \teacheronly{\vspace{0.3em}\textbf{参考答案：}#1}%
+}
+
+% 多版本答案提示
+\newcommand{\multipleanswersacceptable}{%
+  \teacheronly{%
+    \vspace{0.3em}%
+    \textbf{【注】本题答案不唯一，合理即可}%
+  }%
+}
+
+% 变体答案支持
+\providecommand{\alternativeanswer}[1]{%
+  \teacheronly{%
+    \item \textit{替代答案：}#1%
+  }%
+}
+
+% 部分得分标准
+\newcommand{\partialcredit}[2]{%
+  \teacheronly{%
+    \vspace{0.2em}%
+    \small\textcolor{blue!70!black}{#1 \quad ($\rightarrow$ #2分)}%
+  }%
+}
+
+% 典型回答示例
+\newcommand{\sampleanswer}[1]{%
+  \teacheronly{%
+    \vspace{0.3em}%
+    \textit{【示例】}#1%
+  }%
+}
+
+% 认知负荷提示
+\newcommand{\cognitiveload}[1]{%
+  \teacheronly{%
+    \vspace{0.2em}%
+    \small\textcolor{red!70!black}{\textbf{认知负荷：}#1}%
+  }%
+}
+
+%  scaffolding level
+\newcommand{\scaffoldinglevel}[1]{%
+  \teacheronly{%
+    \vspace{0.2em}%
+    \small\textcolor{green!70!black}{\textbf{脚手架层级：}#1}%
+  }%
+}
+
+% 文本复杂度分析
+\newcommand{\textcomplexityanalysis}[3]{%
+  \teacheronly{%
+    \vspace{0.3em}%
+    \small\textbf{文本复杂度分析：}%
+    \begin{itemize}[leftmargin=*, nosep, label=$\bullet$]%
+      \item 平均句长：#1 词
+      \item 生词密度：#2%
+      \item CEFR 对标：#3%
+    \end{itemize}%
+    \vspace{0.3em}%
+  }%
+}

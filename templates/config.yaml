@@ -10,17 +10,17 @@
 font_size: 12pt            # ctexart 字号选项 (10pt / 11pt / 12pt)
 
 # --- 纸张与版面几何 (geometry 宏包参数) ---
-paperwidth: 285mm          # 大8开标准高度（横向放置时为纵向高度）
-paperheight: 420mm         # 大8开标准宽度（横向放置时为横向宽度）
+paperwidth: 420mm          # A3 标准宽度（横向 420mm）
+paperheight: 297mm         # A3 标准高度（横向 297mm）
 orientation: landscape     # landscape / portrait
-margin_top: 1in
-margin_bottom: 1in
-margin_left: 1in
-margin_right: 1in
-headheight: 25pt
+margin_top: 20mm
+margin_bottom: 20mm
+margin_left: 25mm
+margin_right: 25mm
+headheight: 15pt
 
 # --- 双栏 ---
-columns: 2                 # multicols 栏数
+columns: 2                 # multicols 栏数 (双栏)
 
 # --- 标题区 ---
 # 默认值为「学案」；具体课程标题（如「群论学案」）必须先用 ask_question 询问用户确认后填写，严禁自行杜撰。

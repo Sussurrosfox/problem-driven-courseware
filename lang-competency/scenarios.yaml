@@ -1,0 +1,309 @@
+# =============================================================================
+# 纸笔外语学习 - 书面交际情景库
+# Paper-and-Pencil Language Learning - Writing Scenarios
+# =============================================================================
+
+writing_scenarios:
+  personal_communication:
+    - id: WC001
+      type: "informal_letter"
+      title: "写给朋友的旅行建议信"
+      proficiency: "A2-B1"
+      communicative_function: "giving_advice"
+      register: "informal_friend"
+      length_requirement: "120-150 words"
+      key_features:
+        - friendly_tone
+        - specific_suggestions
+        - personal_experience_sharing
+        - offer_further_help
+      language_focus:
+        modal_verbs_suggestions: "You should... / You could..."
+        giving_recommendations: "I'd recommend... / One thing you shouldn't miss is..."
+        expressing_welcome: "I'd be delighted to hear... / It will be great to see you..."
+      cultural_notes:
+        - "Western letters often end with warm regards from friends"
+        - "Offering specific help is common"
+        
+    - id: WC002
+      type: "email_to_family"
+      title: "给家人的周末计划邮件"
+      proficiency: "A2"
+      communicative_function: "sharing_updates"
+      register: "informal_family"
+      length_requirement: "80-100 words"
+      key_features:
+        - positive_tone
+        - clear_schedule
+        - show_care
+      language_focus:
+        future_forms: "going to / will"
+        time_phrases: "on Saturday afternoon / in the evening"
+        asking_questions: "How about you? / What are you doing?"
+
+  academic_writing:
+    - id: WA001
+      type: "argumentative_essay"
+      title: "议论文：学校是否应该取消作业？"
+      proficiency: "B1-B2"
+      communicative_function: "arguing_position"
+      register: "formal_academic"
+      length_requirement: "250-300 words"
+      key_features:
+        - clear_thesis_statement
+        - multiple_supporting_arguments
+        - counterargument_with_rebuttal
+        - formal_language
+        - logical_organization
+      language_focus:
+        stating_opinion: "In my view... / I firmly believe that..."
+        presenting_arguments: "Firstly... / Furthermore... / Another point is..."
+        concession: "Admittedly... / It is true that..."
+        rebuttal: "However... / On the other hand..."
+        concluding: "In conclusion... / To sum up..."
+      structure_guide:
+        paragraph_1: "Introduction + thesis statement"
+        paragraph_2: "First supporting argument with examples"
+        paragraph_3: "Second argument OR counterargument + rebuttal"
+        paragraph_4: "Conclusion summarizing main points"
+        
+    - id: WA002
+      type: "process_explanation"
+      title: "说明文：智能手机如何影响学习"
+      proficiency: "B1"
+      communicative_function: "explaining_process"
+      register: "semi-formal"
+      length_requirement: "200-250 words"
+      key_features:
+        - chronological_order
+        - clear_steps
+        - cause-effect relationships
+        - neutral_tone
+      language_focus:
+        sequence_words: "First, Next, Then, Finally"
+        cause_effect: "This leads to... / As a result... / Consequently..."
+        passive_voice: "can be used / is often considered"
+      
+    - id: WA003
+      type: "critical_response"
+      title: "对某篇文章的观点回应"
+      proficiency: "B2-C1"
+      communicative_function: "critiquing_argument"
+      register: "academic"
+      length_requirement: "300-350 words"
+      key_features:
+        - summary_of_original
+        - agreement_or_disagreement
+        - evidence_support
+        - sophisticated_hedging
+      language_focus:
+        hedging: "It could be argued... / One might suggest..."
+        strong_opinion: "I unequivocally reject... / This claim is flawed because..."
+        citing_sources: "According to Smith (2020)... / As demonstrated by..."
+
+  business_communication:
+    - id: WB001
+      type: "complaint_email"
+      title: "正式投诉邮件"
+      proficiency: "B1-B2"
+      communicative_function: "formal_complaint"
+      register: "formal_polite_but_firm"
+      length_requirement: "100-120 words"
+      key_features:
+        - polite_but_clear_problem_description
+        - specific_request_for_action
+        - deadline_suggestion
+        - professional_closing
+      language_focus:
+        stating_problem: "I am writing to complain about... / I was disappointed to find..."
+        being_firm: "I expect... / I would appreciate it if you could..."
+        setting_deadline: "I look forward to your response within... / Please resolve this by..."
+      sample_structure:
+        opening: "Dear Sir/Madam, I am writing regarding..."
+        problem: "On [date], I purchased... which proved to be..."
+        impact: "This has caused... / Unfortunately..."
+        request: "I would like you to... / Please arrange..."
+        closing: "Yours faithfully,"
+        
+    - id: WB002
+      type: "job_application_cover_letter"
+      title: "求职申请信"
+      proficiency: "B2"
+      communicative_function: "formal_application"
+      register: "formal_professional"
+      length_requirement: "150-200 words"
+      key_features:
+        - highlight relevant_qualifications
+        - express_enthusiasm
+        - professional_tone
+        - call_to_action
+      language_focus:
+        introducing: "I am writing to apply for... / With reference to your advertisement..."
+        selling_skills: "My experience in... / I have developed skills in..."
+        showing_interest: "I am particularly interested in... / This position appeals to me because..."
+        requesting_interview: "I would welcome the opportunity to discuss... / I look forward to hearing from you..."
+        
+    - id: WB003
+      type: "business_proposal"
+      title: "项目合作提案"
+      proficiency: "C1"
+      communicative_function: "formal_proposal"
+      register: "formal_business"
+      length_requirement: "300-400 words"
+      key_features:
+        - clear_objective_statement
+        - benefit_analysis
+        - realistic_timeline
+        - professional_presentation
+      language_focus:
+        proposing: "We would like to propose... / Our suggestion is to..."
+        highlighting_benefits: "This would enable... / The advantages include..."
+        timeline: "Phase 1 will commence... / We anticipate completion by..."
+
+  social_cultural_topics:
+    - id: WS001
+      type: "opinion_article"
+      title: "博客文章：远程学习的利弊"
+      proficiency: "B1-B2"
+      communicative_function: "expressing_opinion_publicly"
+      register: "semi-formal_blog"
+      length_requirement: "200-250 words"
+      key_features:
+        - engaging_opening
+        - balanced_perspective
+        - personal_tone
+        - call_to_reader
+      language_focus:
+        engaging: "Have you ever wondered... / Imagine a world where..."
+        presenting_both_sides: "On the one hand... / On the other hand..."
+        personal_touch: "In my experience... / I personally feel that..."
+        engaging_closing: "What do you think? / Share your thoughts below!"
+        
+    - id: WS002
+      type: "travel_review"
+      title: "旅行体验评论"
+      proficiency: "A2-B1"
+      communicative_function: "reviewing_experience"
+      register: "informal_review_site"
+      length_requirement: "150-180 words"
+      key_features:
+        - descriptive_details
+        - honest_evaluation
+        - practical_tips
+        - rating_system
+      language_focus:
+        describing: "The most amazing aspect was... / What stood out was..."
+        evaluating: "I would rate this... / The highlight was... / The downside was..."
+        recommending: "Definitely worth visiting... / I would recommend..."
+
+interaction_simulations:
+  - id: IS001
+    type: "email_exchange"
+    title: "小组学习计划协调"
+    proficiency: "B1"
+    participants: ["Student A", "Student B"]
+    information_gap:
+      student_a_knows: "Available on Monday, prefers library"
+      student_b_knows: "Busy Monday, prefers Wednesday, wants classroom"
+    task_goal: "Reach agreement via 2-email exchange (write both sides)"
+    expected_length: "Each email 80-100 words"
+    language_focus:
+      making_suggestions: "How about...? / Why not...? / What if we..."
+      polite_disagreement: "I'm afraid I can't... / That won't work for me because..."
+      compromise: "Let's meet halfway by... / Could we try..."
+      confirming_agreement: "That sounds perfect! / Great, let's do that."
+    success_criteria:
+      - "Clear suggestion given in first email"
+      - "Polite negotiation shown"
+      - "Final agreement reached with specific time and place"
+      - "Appropriate tone maintained"
+      
+  - id: IS002
+    type: "letter_chain"
+    title: "笔友信件往来"
+    proficiency: "A2-B1"
+    participants: ["Yourself", "Pen friend abroad"]
+    scenario: "Exchange ideas about favorite hobbies"
+    task_goal: "Write reply to received letter + send your own update"
+    expected_length: "120-150 words total"
+    input_provided: "Sample incoming letter included"
+    language_focus:
+      reacting_to_others_news: "That's wonderful! / How exciting! / I'm so glad to hear..."
+      sharing_yours: "As for me... / My hobby is... / I spend my free time..."
+      asking_followup: "How did it go? / What do you think about...?"
+    cultural_element: "Learn about pen friend's country traditions"
+
+error_patterns_by_level:
+  A2_common_errors:
+    tense_inconsistency:
+      description: "过去叙述中混入现在时"
+      example_wrong: "Yesterday I go to park and see a dog."
+      example_correct: "Yesterday I went to the park and saw a dog."
+      practice_focus: "Past simple regular/irregular verbs"
+      
+    article_missing:
+      description: "可数名词单数前缺少冠词"
+      example_wrong: "I have cat."
+      example_correct: "I have a cat."
+      practice_focus: "a/an vs the distinction"
+      
+  B1_common_errors:
+    present_perfect_vs_simple_past:
+      description: "混淆现在完成时与一般过去时"
+      example_wrong: "I have seen him yesterday."
+      example_correct: "I saw him yesterday."
+      practice_focus: "time markers for each tense"
+      
+    relative_clause_choice:
+      description: "关系代词使用不当"
+      example_wrong: "The man who you met yesterday is my uncle."
+      example_correct: "The man whom/who/that you met yesterday is my uncle."
+      practice_focus: "subject vs object relative clauses"
+      
+    conditional_mixture:
+      description: "条件句类型混乱"
+      example_wrong: "If I would know, I would tell you."
+      example_correct: "If I knew, I would tell you."
+      practice_focus: "Type 2 conditional form"
+      
+  B2_common_errors:
+    complex_sentence_coherence:
+      description: "复杂句中逻辑断裂"
+      example_wrong: "Although it was raining, we went out but we got wet."
+      example_correct: "Although it was raining, we went out and got wet."
+      practice_focus: "subordination vs coordination"
+      
+    register_inconsistency:
+      description: "正式文体中出现口语表达"
+      example_wrong: "The study shows that stuff is really important."
+      example_correct: "The study shows that factors are highly significant."
+      practice_focus: "academic vocabulary substitution"
+
+assessment_templates:
+  writing_portfolio_checklist:
+    criteria:
+      - "Task achievement: Did you cover all requirements?"
+      - "Organization: Are paragraphs logically ordered?"
+      - "Grammar range: Did you use various sentence structures?"
+      - "Vocabulary variety: Avoided repetition?"
+      - "Accuracy: Checked for spelling and grammar errors?"
+      - "Word count: Within required range?"
+      
+  peer_review_form:
+    sections:
+      strengths:
+        - "What did your partner do well?"
+        - "Which parts were clearest?"
+        - "Good vocabulary/grammar examples:"
+      suggestions:
+        - "One thing to improve:"
+        - "Unclear passages:"
+        - "Grammar errors found:"
+      overall_impression: "Rate 1-5: ____"
+      
+  self_reflection_prompt:
+    questions:
+      - "What was most challenging in this task?"
+      - "What did you learn about English writing?"
+      - "What will you focus on improving next time?"
+      - "Rate your confidence: ____/10"

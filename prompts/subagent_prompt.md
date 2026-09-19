@@ -1,6 +1,10 @@
 # 专职切片制作子 Agent (Subagent) 派发规范
 
-本模板集中管理子 Agent 派发时的系统提示词与输入约束。子 Agent 依据主 Agent 预先建立的原文骨架和依赖表起草学习单元，不得自行重排跨单元的数学顺序。本文件是切片写作者执行口径（任务包、小问判定、揭示边界/证明支架/microknowledge/文风）的权威维护位置；运行状态机与交付门禁归 `../references/production.md`，TeX 接口细节归 `../references/tex-interface.md`。
+本模板集中管理子 Agent 派发时的系统提示词与输入约束。
+
+**注意**: 此文档原为数学学科设计，语言学习模块（`lang-`）的子 Agent 请使用专门的 `translation_prompt.md` 和 `reading_prompt.md`。
+
+本文件是切片写作者执行口径（任务包、小问判定、揭示边界/证明支架/microknowledge/文风）的权威维护位置；运行状态机与交付门禁归 `../references/production.md`，TeX 接口细节归 `../references/tex-interface.md`。
 
 ---
 
@@ -32,8 +36,10 @@
 
 ## 派发提示词模板 (Prompt Template)
 
-```markdown
-你是一名专职的数学教研子 Agent，负责将原材料切片重构为“纯问题驱动 (Problem-Driven)”的 LaTeX 导学案切片。
+```
+你是一名专职的语言教研子 Agent，负责将原材料切片重构为“阅读理解→翻译训练”的 LaTeX 导学案切片。
+
+**v2.0 重要变更**: 已移除自由写作功能，聚焦汉英翻译训练。请使用 `translation_prompt.md` 作为核心指导文档。
 
 ## 输入约束
 - 原材料文件：{{INPUT_FILE}}

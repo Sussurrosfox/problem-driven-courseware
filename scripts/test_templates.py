@@ -111,16 +111,16 @@ $2$。
 
 SEC_DLG = r"""\section*{第一节}
 \begin{sectiondialogue}[入口]
-\speaker{$\Psi$}{逆命题是否成立？}
-\speaker{$\gamma$}{先看一个反例。}
-\speaker{$\beta$}{我枚举阶数。}
-\speaker{$\Psi$}{本节任务 SECTASKMARK：检验猜测。}
+\speaker{$\Psi$}{逆命题是否成立？难道结论并非必然？}
+\speaker{$\gamma$}{先看一个反例，其中是否有矛盾？}
+\speaker{$\beta$}{我枚举阶数，为何算出来不对？}
+\speaker{$\Psi$}{本节任务 SECTASKMARK：究竟能否检验猜测？}
 \end{sectiondialogue}
 \begin{exampledialogue}[引例]
 % dialogue: qid=t-entry
-\speaker{$\Psi$}{判断该猜测 ENTRYQMARK。}
-\speaker{$\alpha$}{若存在则指数为 2。}
-\speaker{$\gamma$}{逐个检查。\dlgteacher{（DLGSECRET 确认矛盾。）}}
+\speaker{$\Psi$}{判断该猜测 ENTRYQMARK，难道其中存在疑问？}
+\speaker{$\alpha$}{若存在则指数为 2，这岂不是显然矛盾？}
+\speaker{$\gamma$}{究竟能否逐个检验？\dlgteacher{（DLGSECRET 确认矛盾。）}}
 \end{exampledialogue}
 \begin{probchain}
 % qid: t-entry
@@ -172,8 +172,8 @@ def t_dialogue_checks():
     r = run("check_dialogue.py", d)
     ok.append(r.returncode == 1 and "缺少 sectiondialogue" in r.stdout)
     # 对话块混入 solution → 泄露判失败
-    d = proj(SEC_DLG.replace("\\speaker{$\\beta$}{我枚举阶数。}",
-                             "\\speaker{$\\beta$}{枚举。} "
+    d = proj(SEC_DLG.replace("\\speaker{$\\beta$}{我枚举阶数，为何算出来不对？}",
+                             "\\speaker{$\\beta$}{为何算出来不对？} "
                              "\\begin{solution}泄露\\end{solution}"))
     r = run("check_dialogue.py", d)
     ok.append(r.returncode == 1 and "对话块内禁止" in r.stdout)

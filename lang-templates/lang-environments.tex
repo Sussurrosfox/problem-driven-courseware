@@ -1,0 +1,467 @@
+% =============================================================================
+% 纸笔外语学习 - LaTeX 环境定义
+% Paper-and-Pencil Language Learning - LaTeX Environment Definitions
+% =============================================================================
+
+% 基础宏包依赖
+\usepackage{framed}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage[normalem]{ulem}
+\usepackage{array}
+
+% =============================================================================
+% 通用框架
+% =============================================================================
+
+% 任务框环境（采用无框横幅卡片，彻底消除与 multicols 输出例程冲突，允许内部习题跨栏跨页无损分页）
+\newenvironment{taskbox}[2][]
+  {%
+    \par\vspace{0.6em}\noindent
+    \begingroup
+    \small
+    \noindent\colorbox{blue!7}{%
+      \parbox{\dimexpr\linewidth-2\fboxsep\relax}{%
+        \bfseries\color{blue!80!black}#2%
+        \if\relax\detokenize{#1}\relax\else\par\vspace{0.2em}\normalfont\small\textit{#1}\fi
+      }%
+    }%
+    \par\nopagebreak\vspace{0.4em}%
+    \endgroup
+  }%
+  {\par\vspace{0.6em}}
+
+% 侧边提示框
+\newenvironment{sidebox}[1]
+  {%
+    \par\vspace{0.4em}\noindent
+    \begin{minipage}{\linewidth}%
+      \small\textbf{#1}\par\vspace{0.2em}%
+  }%
+  {\end{minipage}\par\vspace{0.4em}}
+
+% 答案空间命令（单源双输出：教师版压缩，学生版留白，增加弹性伸缩解决硬性断页）
+\ifdefined\TeacherVersion
+  \NewDocumentCommand{\ansspace}{o g}{\par\vspace{0.4ex}}
+\else
+  \NewDocumentCommand{\ansspace}{o g}{%
+    \IfValueTF{#1}{%
+      \par\vspace{#1 plus 0.2\dimexpr#1\relax minus 0.3\dimexpr#1\relax}%
+    }{%
+      \IfValueTF{#2}{%
+        \par\vspace{#2 plus 0.2\dimexpr#2\relax minus 0.3\dimexpr#2\relax}%
+      }{%
+        \par\vspace{2.5cm plus 0.5cm minus 0.8cm}%
+      }%
+    }%
+  }
+\fi
+\newcommand{\ansspaceend}{}
+
+% 填空宏（教师版使用 uline 允许长句答案自然断行，避免硬性定宽造成行溢出；学生版呈现空白下划线）
+\ifdefined\TeacherVersion
+  \newcommand{\fillin}[2][]{%
+    \if\relax\detokenize{#1}\relax
+      \uline{\hspace{#2}}%
+    \else
+      \textcolor{blue!85!black}{\uline{\hspace{0.25em}\bfseries#1\hspace{0.25em}}}%
+    \fi
+  }
+\else
+  \newcommand{\fillin}[2][]{%
+    \uline{\hspace{#2}}%
+  }
+\fi
+
+% =============================================================================
+% 阅读理解任务
+% =============================================================================
+
+\newenvironment{readingtask}[2][]{%
+  \begin{taskbox}[#1]{【阅读理解】#2}%
+  \textbf{阅读以下文本，然后回答问题：}%
+  \vspace{0.8em}%
+  \begin{readingtext}%
+}{%
+  \end{readingtext}%
+  \end{taskbox}%
+}
+
+% 阅读文本容器
+\newenvironment{readingtext}{}{}
+
+% 问题列表
+\newenvironment{questions}{\begin{enumerate}[label=\arabic*, leftmargin=*]}{\end{enumerate}}
+
+% 问题编号命令（带分值）
+\newcommand{\question}[2][1]{\item [\textbf{(#1 分)}] #2}
+
+% =============================================================================
+% 语法操练
+% =============================================================================
+
+\newenvironment{grammardrill}[2][]{%
+  \begin{taskbox}[#1]{【语法要点】#2}%
+  \if\relax\detokenize{#1}\relax\else\textbf{规则：}#1\par\vspace{0.5em}\fi%
+}{%
+  \end{taskbox}%
+}
+
+% 对比说明
+\newcommand{\contrast}[1]{%
+  \vspace{0.3em}%
+  \textbf{对比：}#1%
+  \vspace{0.3em}%
+}
+
+% 练习集合
+\newenvironment{exercises}{\begin{enumerate}[label=\arabic*, leftmargin=*]}{\end{enumerate}}
+
+% =============================================================================
+% 写作支架
+% =============================================================================
+
+\newenvironment{writingscaffold}[2][]{%
+  \begin{taskbox}[#1]{【写作任务】#2}%
+  \textbf{任务：}#1\par\vspace{0.5em}%
+}{%
+  \end{taskbox}%
+}
+
+% 场景描述
+\newcommand{\scenario}[1]{%
+  \textbf{情景：}#1%
+  \vspace{0.3em}%
+}
+
+% 任务目标
+\newcommand{\taskgoal}[1]{%
+  \textbf{目标：}#1%
+  \vspace{0.3em}%
+}
+
+% 结构指南
+\newenvironment{structureguide}{%
+  \textbf{结构建议：}%
+  \begin{itemize}[leftmargin=*, nosep]%
+}{%
+  \end{itemize}\vspace{0.3em}%
+}
+\let\structureguidestart\structureguide
+\let\structureguideend\endstructureguide
+
+% 有用短语
+\newenvironment{usefullanguage}{%
+  \textbf{Useful language:}%
+  \begin{itemize}[leftmargin=*, nosep]%
+}{%
+  \end{itemize}\vspace{0.3em}%
+}
+\let\usefullanguagestart\usefullanguage
+\let\usefullanguageend\endusefullanguage
+
+% 范文段落
+\newenvironment{modelparagraph}{%
+  \vspace{0.5em}%
+  \textbf{范文示例：}%
+  \begin{quote}%
+}{%
+  \end{quote}\vspace{0.3em}%
+}
+\let\modelparagraphstart\modelparagraph
+\let\modelparagraphend\endmodelparagraph
+
+% 写作时间建议
+\newcommand{\writingtime}[1]{%
+  \textbf{建议用时：}#1%
+  \vspace{0.3em}%
+}
+
+% 检查清单
+\newenvironment{checklist}{%
+  \textbf{自查清单：}%
+  \begin{itemize}[leftmargin=*, nosep]%
+}{%
+  \end{itemize}\vspace{0.3em}%
+}
+\let\checkliststart\checklist
+\let\checklistend\endchecklist
+
+% =============================================================================
+% 体裁分析
+% =============================================================================
+
+\newenvironment{genreanalysis}[1]{%
+  \begin{sidebox}{【体裁分析】#1}%
+}{%
+  \end{sidebox}%
+}
+
+% =============================================================================
+% 翻译与转换训练（v2.0 增强版）
+% =============================================================================
+
+% 翻译任务环境
+\newenvironment{translationtask}[2][]{%
+  \begin{taskbox}[#1]{【汉英翻译训练】#2}%
+  \textbf{Translate the following Chinese text into English.}%
+  \vspace{0.8em}%
+}{%
+  \end{taskbox}%
+}
+
+% 中文原文框
+\newenvironment{chinesetext}{%
+  \begin{quote}
+  \small
+}{%
+  \end{quote}%
+}
+
+% 关键词汇对照
+\newenvironment{keywords}{%
+  \textbf{关键词汇对照：}\begin{itemize}[leftmargin=*, nosep]%
+}{%
+  \end{itemize}\vspace{0.3em}%
+}
+\let\keywordsstart\keywords
+\let\keywordsend\endkeywords
+
+% 语法焦点提示
+\newcommand{\syntaxfocus}[1]{%
+  \vspace{0.3em}%
+  \teacheronly{\textcolor{gray!70!black}{\textbf{【语法焦点】}#1}}%
+}
+
+% 字数要求
+\newcommand{\wordlimit}[1]{%
+  \vspace{0.3em}%
+  \teacheronly{\textit{(Target: #1 words)}}%
+}
+
+% 变体答案支持
+\newcommand{\alternativeanswer}[1]{%
+  \teacheronly{%
+    \vspace{0.3em}%
+    \textbf{【替代答案】}#1%
+  }%
+}
+
+% 可接受变化范围
+\newcommand{\acceptablevariations}[1]{%
+  \teacheronly{%
+    \vspace{0.3em}%
+    \textbf{【可接受变体】}#1%
+  }%
+}
+
+% 评分要点
+\newcommand{\scoringpoints}[1]{%
+  \teacheronly{%
+    \vspace{0.3em}%
+    \textbf{【评分要点】}%
+    \begin{itemize}[leftmargin=*, nosep]
+    #1
+    \end{itemize}%
+  }%
+}
+
+% v2.0 旧版翻译桥梁（保留向后兼容）
+\newenvironment{translationbridge}{%
+  \begin{taskbox}{【汉译英练习】}%
+}{%
+  \end{taskbox}%
+}
+
+\newcommand{\chinesesentence}[1]{%
+  \textbf{中文：}#1%
+  \vspace{0.3em}%
+}
+
+\newenvironment{focuspoints}{%
+  \textbf{注意：}%
+  \begin{itemize}[leftmargin=*, nosep]%
+}{%
+  \end{itemize}\vspace{0.3em}%
+}
+\let\focuspointsstart\focuspoints
+\let\focuspointsend\endfocuspoints
+
+\newcommand{\translate}[1]{%
+  \vspace{0.3em}%
+  \textbf{#1}%
+  \ansspace[6cm]%
+}
+
+\newcommand{\modelanswer}[1]{%
+  \studentonly{}%
+  \teacheronly{%
+    \vspace{0.3em}%
+    \textbf{参考译文：}#1%
+  }%
+}
+
+% =============================================================================
+% 偏误分析
+% =============================================================================
+
+\newenvironment{erroranalysis}[1]{%
+  \begin{taskbox}{【偏误诊断】#1}%
+}{%
+  \end{taskbox}%
+}
+
+% 错误标注（划掉 + 正确答案提示）
+\newcommand{\error}[2]{%
+  \uline{\sout{#1}}%
+  \studentonly{}\teacheronly{\textcolor{red!70!black}{[#2]}}%
+}
+
+\newcommand{\explain}[1]{%
+  \vspace{0.3em}%
+  \textit{【说明】#1}%
+  \vspace{0.3em}%
+}
+
+% =============================================================================
+% 交际模拟
+% =============================================================================
+
+\newenvironment{writteninteraction}[2][]{%
+  \begin{taskbox}[#1]{【书面交际模拟】#2}%
+  \textbf{交际场景：}#1\par\vspace{0.5em}%
+}{%
+  \end{taskbox}%
+}
+
+\newcommand{\participant}[1]{%
+  \textbf{#1}%
+}
+
+\newcommand{\inputprovided}[1]{%
+  \vspace{0.3em}%
+  \textbf{提供材料：}%
+  \begin{quote}%
+  #1%
+  \end{quote}%
+  \vspace{0.3em}%
+}
+
+% =============================================================================
+% 语言要点卡
+% =============================================================================
+
+% 语言要点卡（无框横幅卡片，强制末尾换段，禁止标题后孤行断页）
+\newenvironment{languagecard}[1]{%
+  \par\vspace{0.6em}\noindent
+  \begingroup
+  \small
+  \noindent\colorbox{gray!12}{%
+    \parbox{\dimexpr\linewidth-2\fboxsep\relax}{%
+      \bfseries\color{black}【语言要点】#1%
+    }%
+  }%
+  \par\nopagebreak\vspace{0.4em}%
+  \endgroup
+}{%
+  \par\vspace{0.6em}%
+}
+
+\newcommand{\langrule}[1]{%
+  \textbf{规则：}#1%
+  \vspace{0.3em}%
+}
+\let\gramrule\langrule
+
+% =============================================================================
+% 标记与标签
+% =============================================================================
+
+% CEFR 等级标记
+\newcommand{\cefr}[1]{\textsuperscript{\textsf{CEFR #1}}}
+
+% 体裁标记
+\newcommand{\genre}[1]{\textbf{[体裁：#1]}}
+
+% 字数要求
+\newcommand{\wordcount}[1]{\textbf{[字数：#1]}}
+
+% 难度标记
+\newcommand{\difficulty}[1]{\textcolor{blue!70!black}{\small\textbf{难度：}#1}}
+
+% 使用短语框
+\newcommand{\usefulphrase}[1]{%
+  \vspace{0.3em}%
+  \noindent\framebox[\linewidth][l]{%
+    \parbox[t]{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}[t]{%
+      \small\textbf{Useful phrase:} #1%
+    }%
+  }%
+  \vspace{0.3em}%
+}
+
+% =============================================================================
+% 可见性控制（单源双输出：基于 environ 宏包实现完美剥离）
+% =============================================================================
+\usepackage{environ}
+
+% 仅学生可见
+\newcommand{\studentonly}[1]{%
+  \ifdefined\TeacherVersion\else#1\fi
+}
+
+% 仅教师可见
+\newcommand{\teacheronly}[1]{%
+  \ifdefined\TeacherVersion#1\fi
+}
+
+\ifdefined\TeacherVersion
+  % 参考答案环境（教师版醒目显示，带弹性断行）
+  \NewEnviron{solution}[1][参考答案]{%
+    \par\vspace{0.5em}\noindent{\bfseries\color{blue!80!black}【#1】}\par\vspace{0.3em}%
+    \begingroup\color{blue!80!black}\emergencystretch=2.5em\BODY\endgroup\par\vspace{0.5em}%
+  }
+
+  % 教师专用教学要点、易错警示与评分提示环境（带弹性断行）
+  \NewEnviron{teacherNote}[1][教学要点与易错分析]{%
+    \par\vspace{0.4em}\noindent{\bfseries\color{teal!80!black}【#1】}\par\vspace{0.2em}%
+    \begingroup\color{teal!80!black}\small\emergencystretch=2.5em\BODY\endgroup\par\vspace{0.4em}%
+  }
+\else
+  % 学生版彻底剥离答案与教师批注
+  \NewEnviron{solution}[1][]{}
+  \NewEnviron{teacherNote}[1][]{}
+\fi
+
+% =============================================================================
+% 评分量表辅助命令
+% =============================================================================
+
+\newcommand{\scoringcriterion}[4]{%
+  \textbf{#1 (#2\%):} #3%
+  \teacheronly{\quad (\textcolor{blue!70!black}{#4})}%
+}
+
+\newcommand{\banddescription}[4]{%
+  \item \textbf{#1 分：}#2%
+  \teacheronly{\quad$\rightarrow$ #3}%
+}
+
+% =============================================================================
+% 写作检查清单
+% =============================================================================
+
+\newcommand{\writingcheckliststart}{%
+  \textbf{检查清单：}%
+  \begin{itemize}[leftmargin=*, label=$\square$]%
+}
+\newcommand{\writingchecklistend}{\end{itemize}}
+
+% =============================================================================
+% 表格支持
+% =============================================================================
+
+% 特殊表格样式
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\arraybackslash}p{#1}}

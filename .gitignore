@@ -2,53 +2,56 @@
 __pycache__/
 *.py[cod]
 *$py.class
+*.pytest_cache/
 
-# C extensions
-*.so
+# Virtual environments
+.venv/
+venv/
+env/
 
-# Distribution / packaging
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-
-# LaTeX temporary files
+# LaTeX / XeLaTeX auxiliary files
 *.aux
+*.log
+*.out
+*.toc
+*.nav
+*.snm
+*.vrb
 *.bbl
-*.bcf
 *.blg
-*.dvi
-*.fdb_latexmk
+*.synctex.gz
 *.fls
+*.fdb_latexmk
+*.xdv
+*.lot
+*.lof
 *.idx
 *.ilg
 *.ind
-*.log
-*.nav
-*.out
-*.snm
-*.synctex(busy)
-*.synctex.gz
-*.toc
-*.vrb
-*.xdv
-*.run.xml
+*.pass*.log
 
-# OS generated files
+# Runtime artifacts and generated releases
+.pd/
+self/
+release/
+build/
+scratch/
+dist/
+
+# Secrets and tokens
+*token*
+*.key
+*.pem
+gittoken.txt
+
+# OS artifacts
 .DS_Store
 Thumbs.db
+ehthumbs.db
 
-# Secrets
-gittoken.txt
+# IDE and Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
